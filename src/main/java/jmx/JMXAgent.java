@@ -8,9 +8,9 @@ import javax.management.MBeanServer;
 
 public class JMXAgent
 {
-	private StatisticManager statisticManager;
+	private final StatisticManager statisticManager = StatisticManager.getInstance();
 	
-	protected void init()
+	public void init()
 	{
 		try
 		{

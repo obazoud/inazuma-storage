@@ -28,12 +28,8 @@ public class UserLookupDocument implements StatusMessageObject
 
 	public boolean add(final long created, final String key)
 	{
-		if (lookup.putIfAbsent(key, created) != null)
-		{
-			return false;
-		}
-		return true;
-	}
+        return lookup.putIfAbsent(key, created) == null;
+    }
 	
 	public void remove(final String key)
 	{
