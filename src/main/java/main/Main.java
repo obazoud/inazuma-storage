@@ -18,9 +18,8 @@ public class Main
         // Startup storage threads
         final StorageController storageController = new StorageController(client, Config.STORAGE_THREADS, Config.MAX_RETRIES);
 
-        // Configure JMX
-        final JMXAgent jmxAgent = new JMXAgent();
-        jmxAgent.init();
+        // Start JMX agent
+        new JMXAgent();
 
         // Create shutdown event
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
