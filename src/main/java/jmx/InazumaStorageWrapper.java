@@ -24,12 +24,21 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	}
 
 	@Override
-	public void insertMultipleDocuments(int count)
+	public void insertMultipleDocuments(final int count)
 	{
-		while (count-- > 0)
+		final Thread thread = new Thread()
 		{
-			insertSingleDocument();
-		}
+			@Override
+			public void run()
+			{
+				int i = count;
+				while (i-- > 0)
+				{
+					insertSingleDocument();
+				}
+			}
+		};
+		thread.start();
 	}
 
 	@Override
