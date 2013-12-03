@@ -19,7 +19,7 @@ class StorageControllerQueueThread extends Thread
 
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	private final BlockingQueue<SerializedData> incomingQueue;
-	private final IntObjectOpenHashMap<UserLookupDocument> lookupMap;
+	private final IntObjectOpenHashMap<UserLookupDocument> lookupDocumentMap;
 	private final IntOpenHashSet userOnQueue;
 	private final int threadNo;
 	private final StorageController storageController;
@@ -30,7 +30,7 @@ class StorageControllerQueueThread extends Thread
 	{
 		super("StorageController-thread-" + threadNo);
 		this.incomingQueue = new LinkedBlockingQueue<SerializedData>();
-		this.lookupMap = new IntObjectOpenHashMap<UserLookupDocument>();
+		this.lookupDocumentMap = new IntObjectOpenHashMap<UserLookupDocument>();
 		this.userOnQueue = new IntOpenHashSet();
 		this.threadNo = threadNo;
 		this.storageController = storageController;
@@ -50,7 +50,7 @@ class StorageControllerQueueThread extends Thread
 
 	protected String getKeys(final int userID)
 	{
-		final UserLookupDocument userLookupDocument = getLookup(userID);
+		final UserLookupDocument userLookupDocument = getLookupDocument(userID);
 		if (userLookupDocument == null)
 		{
 			return null;
@@ -93,18 +93,16 @@ class StorageControllerQueueThread extends Thread
 		if (serializedData instanceof PersistLookupDocumentOnly)
 		{
 			// Persist lookup document
-			if (userOnQueue.contains(userID))
+			if (!persistLookup(userID, createLookupDocumentKey(userID), lookupDocumentMap.get(userID)))
 			{
-				if (!persistLookup(userID, createLookupDocumentKey(userID), lookupMap.get(userID)))
-				{
-					incomingQueue.add(serializedData);
-				}
+				incomingQueue.add(serializedData);
 			}
+			return;
 		}
 		else if (serializedData instanceof DeleteData)
 		{
 			// Delete serializedData
-			final UserLookupDocument userLookupDocument = getLookup(userID);
+			final UserLookupDocument userLookupDocument = getLookupDocument(userID);
 			if (userLookupDocument == null || !deleteData(serializedData))
 			{
 				incomingQueue.add(serializedData);
@@ -113,11 +111,12 @@ class StorageControllerQueueThread extends Thread
 			{
 				removeDataFromLookupDocument(serializedData, userLookupDocument);
 			}
+			return;
 		}
 		if (!(serializedData instanceof PoisonedSerializedData))
 		{
 			// Persist serializedData if not PoisonedSerializedData (which just unblocks the queue so the thread can shutdown properly)
-			final UserLookupDocument userLookupDocument = getLookup(userID);
+			final UserLookupDocument userLookupDocument = getLookupDocument(userID);
 			if (userLookupDocument == null || !persistData(serializedData))
 			{
 				incomingQueue.add(serializedData);
@@ -131,9 +130,6 @@ class StorageControllerQueueThread extends Thread
 
 	private void addDataToLookupDocument(final SerializedData serializedData, final UserLookupDocument userLookupDocument)
 	{
-		final int userID = serializedData.getUserID();
-		final String lookupDocumentKey = createLookupDocumentKey(userID);
-
 		// Modify lookup document
 		if (!userLookupDocument.add(serializedData.getCreated(), serializedData.getKey()))
 		{
@@ -141,19 +137,20 @@ class StorageControllerQueueThread extends Thread
 			return;
 		}
 
-		// Store lookup document
-		if (!persistLookup(userID, lookupDocumentKey, userLookupDocument))
-		{
-			removeDataFromLookupDocument(serializedData, userLookupDocument);
-		}
+		storeLookupDocument(serializedData.getUserID());
 	}
 
 	private void removeDataFromLookupDocument(final SerializedData serializedData, final UserLookupDocument userLookupDocument)
 	{
-		final int userID = serializedData.getUserID();
-
 		// FIXME UnitTests fail when removing data from document, check what is happening!
 		//userLookupDocument.remove(serializedData.getKey());
+
+		storeLookupDocument(serializedData.getUserID());
+	}
+
+	private void storeLookupDocument(final int userID)
+	{
+		// Store lookup document
 		if (!userOnQueue.contains(userID))
 		{
 			userOnQueue.add(userID);
@@ -161,10 +158,10 @@ class StorageControllerQueueThread extends Thread
 		}
 	}
 
-	private UserLookupDocument getLookup(final int userID)
+	private UserLookupDocument getLookupDocument(final int userID)
 	{
 		final String lookupDocumentKey = createLookupDocumentKey(userID);
-		UserLookupDocument userLookupDocument = lookupMap.get(userID);
+		UserLookupDocument userLookupDocument = lookupDocumentMap.get(userID);
 		if (userLookupDocument != null)
 		{
 			return userLookupDocument;
@@ -183,7 +180,7 @@ class StorageControllerQueueThread extends Thread
 				{
 					userLookupDocument = new UserLookupDocument();
 				}
-				lookupMap.put(userID, userLookupDocument);
+				lookupDocumentMap.put(userID, userLookupDocument);
 				return userLookupDocument;
 			}
 			catch (Exception e)

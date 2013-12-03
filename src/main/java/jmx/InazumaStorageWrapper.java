@@ -52,7 +52,7 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 
 	private int createRandomUserID()
 	{
-		return generator.nextInt(10) + 1;
+		return generator.nextInt(100000) + 1;
 	}
 
 	private SerializedData createRandomSerializedData()

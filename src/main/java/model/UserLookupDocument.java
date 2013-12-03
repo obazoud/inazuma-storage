@@ -9,12 +9,17 @@ import java.util.concurrent.ConcurrentMap;
 
 public class UserLookupDocument implements StatusMessageObject
 {
-	private final static Type typeOfMap = new TypeToken<ConcurrentHashMap<String, Long>>()
+	private final static Type typeOfMap;
+
+	static
 	{
-	}.getType();
+		TypeToken<ConcurrentHashMap<String, Long>> typeToken = new TypeToken<ConcurrentHashMap<String, Long>>()
+		{
+		};
+		typeOfMap = typeToken.getType();
+	}
 
 	private final ConcurrentMap<String, Long> lookup;
-
 	private int tries = 0;
 	private Exception lastException = null;
 
@@ -26,6 +31,11 @@ public class UserLookupDocument implements StatusMessageObject
 	public UserLookupDocument(final String json)
 	{
 		lookup = new Gson().fromJson(json, typeOfMap);
+	}
+
+	public static UserLookupDocument fromJSON(final String value)
+	{
+		return new UserLookupDocument(value);
 	}
 
 	public boolean add(final long created, final String key)
@@ -53,11 +63,6 @@ public class UserLookupDocument implements StatusMessageObject
 	{
 		Gson gson = new Gson();
 		return gson.toJson(lookup);
-	}
-
-	public static UserLookupDocument fromJSON(final String value)
-	{
-		return new UserLookupDocument(value);
 	}
 
 	@Override
