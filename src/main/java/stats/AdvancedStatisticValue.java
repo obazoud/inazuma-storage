@@ -15,17 +15,32 @@ public final class AdvancedStatisticValue extends AbstractStatisticValue<Long>
 	{
 		super(group, name, duration, timeUnit);
 		stats.addAll(options);
-		if (showSum()) lastTimeRangedValueDefault = 0L;
-		if (showCount()) lastTimeRangedValueCount = 0L;
-		if (showAvg()) lastTimeRangedValueAvg = 0L;
-		if (showMin()) lastTimeRangedValueMin = 0L;
-		if (showMax()) lastTimeRangedValueMax = 0L;
+		if (showSum())
+		{
+			lastTimeRangedValueDefault = 0L;
+		}
+		if (showCount())
+		{
+			lastTimeRangedValueCount = 0L;
+		}
+		if (showAvg())
+		{
+			lastTimeRangedValueAvg = 0L;
+		}
+		if (showMin())
+		{
+			lastTimeRangedValueMin = 0L;
+		}
+		if (showMax())
+		{
+			lastTimeRangedValueMax = 0L;
+		}
 		if (autoRegister)
 		{
 			StatisticManager.getInstance().registerStatisticValue(this);
 		}
 	}
-	
+
 	public AdvancedStatisticValue(final String group, final String name, final long duration, final TimeUnit timeUnit, final EnumSet<Stat> options)
 	{
 		this(group, name, duration, timeUnit, options, true);
@@ -35,7 +50,7 @@ public final class AdvancedStatisticValue extends AbstractStatisticValue<Long>
 	{
 		this(null, name, duration, timeUnit, options, true);
 	}
-	
+
 	public AdvancedStatisticValue(final String group, final String name, final EnumSet<Stat> options)
 	{
 		this(group, name, 60, TimeUnit.SECONDS, options);
@@ -61,7 +76,7 @@ public final class AdvancedStatisticValue extends AbstractStatisticValue<Long>
 			timeRangeValueMax.compareAndSet(oldMax, value);
 		}
 	}
-	
+
 	@Override
 	protected String getType()
 	{
@@ -83,17 +98,17 @@ public final class AdvancedStatisticValue extends AbstractStatisticValue<Long>
 		}
 		if (showAvg())
 		{
-			lastTimeRangedValueAvg = (inv == 0) ? 0L : Math.round((double)value / inv); 
+			lastTimeRangedValueAvg = (inv == 0) ? 0L : Math.round((double) value / inv);
 		}
 		if (showMin())
 		{
 			final long showMin = timeRangeValueMin.getAndSet(Long.MAX_VALUE);
-			lastTimeRangedValueMin = (showMin == Long.MAX_VALUE) ? 0L : showMin; 
+			lastTimeRangedValueMin = (showMin == Long.MAX_VALUE) ? 0L : showMin;
 		}
 		if (showMax())
 		{
 			final long showMax = timeRangeValueMax.getAndSet(Long.MIN_VALUE);
-			lastTimeRangedValueMax = (showMax == Long.MIN_VALUE) ? 0L : showMax; 
+			lastTimeRangedValueMax = (showMax == Long.MIN_VALUE) ? 0L : showMax;
 		}
 	}
 }

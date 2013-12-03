@@ -6,7 +6,7 @@ public class SerializedData implements StatusMessageObject
 	private final long created;
 	private final String key;
 	private final String document;
-	
+
 	private int tries;
 	private Exception lastException;
 
@@ -16,7 +16,7 @@ public class SerializedData implements StatusMessageObject
 		this.created = created;
 		this.key = key;
 		this.document = document;
-		
+
 		tries = 0;
 		lastException = null;
 	}

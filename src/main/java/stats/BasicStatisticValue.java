@@ -17,12 +17,12 @@ public final class BasicStatisticValue extends AbstractStatisticValue<Long>
 			StatisticManager.getInstance().registerStatisticValue(this);
 		}
 	}
-	
+
 	public BasicStatisticValue(final String group, final String name, final long duration, final TimeUnit timeUnit)
 	{
 		this(group, name, duration, timeUnit, true);
 	}
-	
+
 	public BasicStatisticValue(final String name, final long duration, final TimeUnit timeUnit)
 	{
 		this(null, name, duration, timeUnit, true);
@@ -32,7 +32,7 @@ public final class BasicStatisticValue extends AbstractStatisticValue<Long>
 	{
 		this(group, name, 60, TimeUnit.SECONDS, true);
 	}
-	
+
 	public BasicStatisticValue(final String name)
 	{
 		this(null, name);

@@ -28,7 +28,7 @@ public final class BasicStatisticValueAvg extends AbstractStatisticValue<Long>
 	{
 		this(null, name, duration, timeUnit, true);
 	}
-	
+
 	public BasicStatisticValueAvg(final String group, final String name)
 	{
 		this(group, name, 60, TimeUnit.SECONDS, true);
@@ -44,7 +44,7 @@ public final class BasicStatisticValueAvg extends AbstractStatisticValue<Long>
 		timeRangeValue.addAndGet(value);
 		invocations.incrementAndGet();
 	}
-	
+
 	@Override
 	protected String getType()
 	{
@@ -56,6 +56,6 @@ public final class BasicStatisticValueAvg extends AbstractStatisticValue<Long>
 	{
 		final double value = timeRangeValue.getAndSet(0);
 		final long inv = invocations.getAndSet(0);
-		lastTimeRangedValueAvg = (inv == 0) ? 0L : Math.round(value / inv); 
+		lastTimeRangedValueAvg = (inv == 0) ? 0L : Math.round(value / inv);
 	}
 }

@@ -9,7 +9,7 @@ public abstract class AbstractStatisticValue<VALUE>
 	{
 		SUM, COUNT, AVG, MIN, MAX
 	}
-	
+
 	protected final ValueValidator valueValidator = new ValueValidator();
 	protected final EnumSet<Stat> stats = EnumSet.noneOf(Stat.class);
 
@@ -40,37 +40,37 @@ public abstract class AbstractStatisticValue<VALUE>
 		this.name = name;
 		this.timeRange = timeRange;
 	}
-	
+
 	public AbstractStatisticValue(final String name, final long duration, final TimeUnit timeUnit)
 	{
 		this(null, name, duration, timeUnit);
 	}
-	
+
 	public AbstractStatisticValue(final String group, final String name, final long duration)
 	{
 		this(group, name, 60, TimeUnit.SECONDS);
 	}
-	
+
 	public AbstractStatisticValue(final String name)
 	{
 		this(null, name, 60, TimeUnit.SECONDS);
 	}
-	
+
 	public boolean showSum()
 	{
 		return stats.contains(Stat.SUM);
 	}
-	
+
 	public boolean showCount()
 	{
 		return stats.contains(Stat.COUNT);
 	}
-	
+
 	public boolean showAvg()
 	{
 		return stats.contains(Stat.AVG);
 	}
-	
+
 	public boolean showMin()
 	{
 		return stats.contains(Stat.MIN);
@@ -85,7 +85,7 @@ public abstract class AbstractStatisticValue<VALUE>
 	{
 		return (this.group == group || (this.group != null && this.group.equals(group)));
 	}
-	
+
 	public String getGroup()
 	{
 		return group;
@@ -105,29 +105,29 @@ public abstract class AbstractStatisticValue<VALUE>
 	{
 		return lastTimeRangedValueDefault;
 	}
-	
+
 	public VALUE getLastTimeRangedValueCount()
 	{
 		return lastTimeRangedValueCount;
 	}
-	
+
 	public VALUE getLastTimeRangedValueAvg()
 	{
 		return lastTimeRangedValueAvg;
 	}
-	
+
 	public VALUE getLastTimeRangedValueMin()
 	{
 		return lastTimeRangedValueMin;
 	}
-	
+
 	public VALUE getLastTimeRangedValueMax()
 	{
 		return lastTimeRangedValueMax;
 	}
-	
+
 	protected abstract String getType();
-	
+
 	protected abstract void swapValue();
 
 	class ValueValidator implements Runnable

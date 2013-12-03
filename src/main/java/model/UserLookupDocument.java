@@ -1,18 +1,20 @@
 package model;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 public class UserLookupDocument implements StatusMessageObject
 {
-	private final static Type typeOfMap = new TypeToken<ConcurrentHashMap<String, Long>>() {}.getType();
-	
+	private final static Type typeOfMap = new TypeToken<ConcurrentHashMap<String, Long>>()
+	{
+	}.getType();
+
 	private final ConcurrentMap<String, Long> lookup;
-	
+
 	private int tries = 0;
 	private Exception lastException = null;
 
@@ -20,7 +22,7 @@ public class UserLookupDocument implements StatusMessageObject
 	{
 		lookup = new ConcurrentHashMap<String, Long>();
 	}
-	
+
 	public UserLookupDocument(final String json)
 	{
 		lookup = new Gson().fromJson(json, typeOfMap);
@@ -28,14 +30,14 @@ public class UserLookupDocument implements StatusMessageObject
 
 	public boolean add(final long created, final String key)
 	{
-        return lookup.putIfAbsent(key, created) == null;
-    }
-	
+		return lookup.putIfAbsent(key, created) == null;
+	}
+
 	public void remove(final String key)
 	{
 		lookup.remove(key);
 	}
-	
+
 	public int size()
 	{
 		return lookup.size();
@@ -57,7 +59,7 @@ public class UserLookupDocument implements StatusMessageObject
 	{
 		return new UserLookupDocument(value);
 	}
-	
+
 	@Override
 	public int getTries()
 	{

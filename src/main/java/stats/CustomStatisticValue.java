@@ -18,12 +18,12 @@ public class CustomStatisticValue<VALUE> extends AbstractStatisticValue<VALUE>
 	{
 		this(group, name, 60, TimeUnit.SECONDS, valueCollector);
 	}
-	
+
 	public CustomStatisticValue(final String name, final long duration, final TimeUnit timeUnit, final ValueCollector<VALUE> valueCollector)
 	{
 		this(null, name, duration, timeUnit, valueCollector);
 	}
-	
+
 	public CustomStatisticValue(final String name, final ValueCollector<VALUE> valueCollector)
 	{
 		this(null, name, 60, TimeUnit.SECONDS, valueCollector);
@@ -44,6 +44,7 @@ public class CustomStatisticValue<VALUE> extends AbstractStatisticValue<VALUE>
 	public static interface ValueCollector<VALUE>
 	{
 		VALUE collectValue();
+
 		String getType();
 	}
 }

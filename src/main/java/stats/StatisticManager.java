@@ -1,26 +1,10 @@
 package stats;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.management.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.DynamicMBean;
-import javax.management.InvalidAttributeValueException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
-import javax.management.MBeanInfo;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
 
 public final class StatisticManager
 {
@@ -32,7 +16,7 @@ public final class StatisticManager
 
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	private final Thread collectionThread = new Thread(new CollectionTask(), "StatisticCollector");
-	
+
 	private MBeanServer mbs = null;
 	private String baseName = null;
 
@@ -51,7 +35,7 @@ public final class StatisticManager
 		running.set(false);
 		collectionThread.interrupt();
 	}
-	
+
 	public Attribute getStatisticValue(final String group, final String attribute)
 	{
 		try
@@ -62,7 +46,7 @@ public final class StatisticManager
 			final boolean isMax = attribute.endsWith("Max");
 			final boolean isSum = (!isCount && !isAvg && !isMin && !isMax);
 			final String attributeSearch = isSum ? attribute : attribute.substring(0, attribute.length() - 3);
-			
+
 			lock.lock();
 			final AbstractStatisticValue<?> statisticValue = statisticValues.get(attributeSearch);
 			if (statisticValue != null && statisticValue.isMemberOf(group))
@@ -95,7 +79,7 @@ public final class StatisticManager
 			lock.unlock();
 		}
 	}
-	
+
 	public void registerStatisticValue(final AbstractStatisticValue<?> statisticValue)
 	{
 		try
@@ -139,7 +123,7 @@ public final class StatisticManager
 			lock.unlock();
 		}
 	}
-	
+
 	private void registerMBean(final String group)
 	{
 		if (mbs == null || baseName == null || group == null)
@@ -162,21 +146,21 @@ public final class StatisticManager
 			}
 		}
 	}
-	
+
 	private class StatisticManagerMBean implements DynamicMBean
 	{
 		private final String group;
-		
+
 		public StatisticManagerMBean()
 		{
 			this.group = null;
 		}
-		
+
 		public StatisticManagerMBean(final String group)
 		{
 			this.group = group;
 		}
-		
+
 		@Override
 		public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException
 		{
@@ -203,13 +187,14 @@ public final class StatisticManager
 			{
 				final AttributeList list = new AttributeList();
 				lock.lock();
-                for (String attributeName : attributes)
-                {
-                    final Attribute attribute = getStatisticValue(group, attributeName);
-                    if (attribute != null) {
-                        list.add(attribute);
-                    }
-                }
+				for (String attributeName : attributes)
+				{
+					final Attribute attribute = getStatisticValue(group, attributeName);
+					if (attribute != null)
+					{
+						list.add(attribute);
+					}
+				}
 				return list;
 			}
 			catch (Exception e)
@@ -233,7 +218,7 @@ public final class StatisticManager
 		{
 			return null;
 		}
-		
+
 		@Override
 		public MBeanInfo getMBeanInfo()
 		{
@@ -241,40 +226,40 @@ public final class StatisticManager
 			{
 				lock.lock();
 				final List<MBeanAttributeInfo> attrs = new LinkedList<MBeanAttributeInfo>();
-                for (final String attribute : statisticValues.keySet())
-                {
-                    final AbstractStatisticValue<?> statisticValue = statisticValues.get(attribute);
-                    if (statisticValue != null && statisticValue.isMemberOf(group))
-                    {
-                        if (statisticValue.showSum())
-                        {
-                            attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "", " (sum)"));
-                        }
-                        if (statisticValue.showCount())
-                        {
-                            attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Cnt", " (count)"));
-                        }
-                        if (statisticValue.showAvg())
-                        {
-                            attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Avg", " (average)"));
-                        }
-                        if (statisticValue.showMin())
-                        {
-                            attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Min", " (minimum)"));
-                        }
-                        if (statisticValue.showMax())
-                        {
-                            attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Max", " (maximum)"));
-                        }
-                    }
-                }
+				for (final String attribute : statisticValues.keySet())
+				{
+					final AbstractStatisticValue<?> statisticValue = statisticValues.get(attribute);
+					if (statisticValue != null && statisticValue.isMemberOf(group))
+					{
+						if (statisticValue.showSum())
+						{
+							attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "", " (sum)"));
+						}
+						if (statisticValue.showCount())
+						{
+							attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Cnt", " (count)"));
+						}
+						if (statisticValue.showAvg())
+						{
+							attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Avg", " (average)"));
+						}
+						if (statisticValue.showMin())
+						{
+							attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Min", " (minimum)"));
+						}
+						if (statisticValue.showMax())
+						{
+							attrs.add(createAttributeInfo(attribute, statisticValue.getType(), "Max", " (maximum)"));
+						}
+					}
+				}
 				return new MBeanInfo(
-					this.getClass().getName(),
-					"StatisticManager Wrapper MBean" + (group != null ? " (" + group + ")" : ""),
-					attrs.toArray(new MBeanAttributeInfo[attrs.size()]),
-					null,
-					null,
-					null
+						this.getClass().getName(),
+						"StatisticManager Wrapper MBean" + (group != null ? " (" + group + ")" : ""),
+						attrs.toArray(new MBeanAttributeInfo[attrs.size()]),
+						null,
+						null,
+						null
 				);
 			}
 			finally
@@ -286,12 +271,12 @@ public final class StatisticManager
 		private MBeanAttributeInfo createAttributeInfo(final String attribute, final String type, final String postfix, final String propertyPostfix)
 		{
 			return new MBeanAttributeInfo(
-				attribute + postfix,
-				type,
-				"Property " + attribute + propertyPostfix,
-				true, // isReadable
-				false, // isWritable
-				false  // isIs
+					attribute + postfix,
+					type,
+					"Property " + attribute + propertyPostfix,
+					true, // isReadable
+					false, // isWritable
+					false  // isIs
 			);
 		}
 	}
@@ -306,10 +291,10 @@ public final class StatisticManager
 				try
 				{
 					lock.lock();
-                    for (final String attribute : statisticValues.keySet())
-                    {
-                        statisticValues.get(attribute).valueValidator.run();
-                    }
+					for (final String attribute : statisticValues.keySet())
+					{
+						statisticValues.get(attribute).valueValidator.run();
+					}
 				}
 				finally
 				{

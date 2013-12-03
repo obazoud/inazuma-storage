@@ -1,18 +1,17 @@
 package controller;
 
+import com.carrotsearch.hppc.IntObjectOpenHashMap;
+import com.carrotsearch.hppc.IntOpenHashSet;
+import com.couchbase.client.CouchbaseClient;
+import model.SerializedData;
+import model.StatusMessageObject;
+import model.UserLookupDocument;
+import net.spy.memcached.internal.OperationFuture;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import model.UserLookupDocument;
-import model.SerializedData;
-import model.StatusMessageObject;
-import net.spy.memcached.internal.OperationFuture;
-
-import com.carrotsearch.hppc.IntObjectOpenHashMap;
-import com.carrotsearch.hppc.IntOpenHashSet;
-import com.couchbase.client.CouchbaseClient;
 
 class StorageControllerQueueThread extends Thread
 {
@@ -115,8 +114,8 @@ class StorageControllerQueueThread extends Thread
 				removeDataFromLookupDocument(serializedData, userLookupDocument);
 			}
 		}
-        if (!(serializedData instanceof PoisonedSerializedData))
-        {
+		if (!(serializedData instanceof PoisonedSerializedData))
+		{
 			// Persist serializedData if not PoisonedSerializedData (which just unblocks the queue so the thread can shutdown properly)
 			final UserLookupDocument userLookupDocument = getLookup(userID);
 			if (userLookupDocument == null || !persistData(serializedData))
@@ -295,7 +294,7 @@ class StorageControllerQueueThread extends Thread
 	{
 		try
 		{
-            TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS * tries);
+			TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS * tries);
 		}
 		catch (InterruptedException ignored)
 		{

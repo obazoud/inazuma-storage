@@ -9,6 +9,6 @@ public interface StatusMessageObject
 	public Exception getLastException();
 
 	public void setLastException(Exception lastException);
-	
+
 	public void resetStatus();
 }

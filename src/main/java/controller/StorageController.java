@@ -1,14 +1,13 @@
 package controller;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.couchbase.client.CouchbaseClient;
 import model.SerializedData;
 import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
-
-import com.couchbase.client.CouchbaseClient;
 import stats.StatisticManager;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class StorageController
 {
@@ -41,7 +40,7 @@ public class StorageController
 		}
 
 		final CustomStatisticValue queueSize = new CustomStatisticValue<Integer>("StorageService", "queueSize", new QueueSizeCollector(this));
-        StatisticManager.getInstance().registerStatisticValue(queueSize);
+		StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
 	public String getKeys(final int userID)
