@@ -53,7 +53,7 @@ public final class AdvancedStatisticValue extends AbstractStatisticValue<Long>
 
 	public AdvancedStatisticValue(final String group, final String name, final EnumSet<Stat> options)
 	{
-		this(group, name, 60, TimeUnit.SECONDS, options);
+		this(group, name, DEFAULT_INTERVAL, DEFAULT_UNIT, options);
 	}
 
 	public AdvancedStatisticValue(final String name, final EnumSet<Stat> options)

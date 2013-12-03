@@ -31,7 +31,7 @@ public final class BasicStatisticValueAvg extends AbstractStatisticValue<Long>
 
 	public BasicStatisticValueAvg(final String group, final String name)
 	{
-		this(group, name, 60, TimeUnit.SECONDS, true);
+		this(group, name, DEFAULT_INTERVAL, DEFAULT_UNIT, true);
 	}
 
 	public BasicStatisticValueAvg(final String name)

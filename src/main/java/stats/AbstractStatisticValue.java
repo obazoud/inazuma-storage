@@ -10,6 +10,9 @@ public abstract class AbstractStatisticValue<VALUE>
 		SUM, COUNT, AVG, MIN, MAX
 	}
 
+	protected static final long DEFAULT_INTERVAL = 10;
+	protected static final TimeUnit DEFAULT_UNIT = TimeUnit.SECONDS;
+
 	protected final ValueValidator valueValidator = new ValueValidator();
 	protected final EnumSet<Stat> stats = EnumSet.noneOf(Stat.class);
 
@@ -53,7 +56,7 @@ public abstract class AbstractStatisticValue<VALUE>
 
 	public AbstractStatisticValue(final String name)
 	{
-		this(null, name, 60, TimeUnit.SECONDS);
+		this(null, name, DEFAULT_INTERVAL, DEFAULT_UNIT);
 	}
 
 	public boolean showSum()

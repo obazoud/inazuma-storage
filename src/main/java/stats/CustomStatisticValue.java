@@ -16,7 +16,7 @@ public class CustomStatisticValue<VALUE> extends AbstractStatisticValue<VALUE>
 
 	public CustomStatisticValue(final String group, final String name, final ValueCollector<VALUE> valueCollector)
 	{
-		this(group, name, 60, TimeUnit.SECONDS, valueCollector);
+		this(group, name, DEFAULT_INTERVAL, DEFAULT_UNIT, valueCollector);
 	}
 
 	public CustomStatisticValue(final String name, final long duration, final TimeUnit timeUnit, final ValueCollector<VALUE> valueCollector)
@@ -26,7 +26,7 @@ public class CustomStatisticValue<VALUE> extends AbstractStatisticValue<VALUE>
 
 	public CustomStatisticValue(final String name, final ValueCollector<VALUE> valueCollector)
 	{
-		this(null, name, 60, TimeUnit.SECONDS, valueCollector);
+		this(null, name, DEFAULT_INTERVAL, DEFAULT_UNIT, valueCollector);
 	}
 
 	@Override

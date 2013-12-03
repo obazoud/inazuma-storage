@@ -30,7 +30,7 @@ public final class BasicStatisticValue extends AbstractStatisticValue<Long>
 
 	public BasicStatisticValue(final String group, final String name)
 	{
-		this(group, name, 60, TimeUnit.SECONDS, true);
+		this(group, name, DEFAULT_INTERVAL, DEFAULT_UNIT, true);
 	}
 
 	public BasicStatisticValue(final String name)
