@@ -8,6 +8,7 @@ import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
 
 import com.couchbase.client.CouchbaseClient;
+import stats.StatisticManager;
 
 public class StorageController
 {
@@ -19,10 +20,10 @@ public class StorageController
 	private final BasicStatisticValue dataFetched = new BasicStatisticValue("StorageService", "dataFetched");
 	private final BasicStatisticValue dataAdded = new BasicStatisticValue("StorageService", "dataAdded");
 	private final BasicStatisticValue dataDeleted = new BasicStatisticValue("StorageService", "dataDeleted");
-	
+
 	private final BasicStatisticValue lookupRetries = new BasicStatisticValue("StorageService", "retriesLookup");
 	private final BasicStatisticValue lookupPersisted = new BasicStatisticValue("StorageService", "persistedLookup");
-	
+
 	private final BasicStatisticValue dataRetries = new BasicStatisticValue("StorageService", "retriesData");
 	private final BasicStatisticValue dataPersisted = new BasicStatisticValue("StorageService", "persistedData");
 
@@ -39,12 +40,13 @@ public class StorageController
 			threads[i].start();
 		}
 
-		new CustomStatisticValue<Integer>("StorageService", "queueSize", new QueueSizeCollector(this));
+		final CustomStatisticValue queueSize = new CustomStatisticValue<Integer>("StorageService", "queueSize", new QueueSizeCollector(this));
+        StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
-	public String getKeys(final int receiverID)
+	public String getKeys(final int userID)
 	{
-		return threads[calculateThreadNumber(receiverID)].getKeys(receiverID);
+		return threads[calculateThreadNumber(userID)].getKeys(userID);
 	}
 
 	public String getData(final String key)
@@ -60,10 +62,10 @@ public class StorageController
 		threads[calculateThreadNumber(serializedData.getUserID())].addData(serializedData);
 	}
 
-	public void deleteData(final int receiverID, final String key)
+	public void deleteData(final int userID, final String key)
 	{
 		dataDeleted.increment();
-		threads[calculateThreadNumber(receiverID)].deleteData(receiverID, key);
+		threads[calculateThreadNumber(userID)].deleteData(userID, key);
 	}
 
 	public int size()
@@ -90,7 +92,7 @@ public class StorageController
 		{
 			latch.await(60, TimeUnit.MINUTES);
 		}
-		catch (InterruptedException e)
+		catch (InterruptedException ignored)
 		{
 		}
 	}
@@ -120,8 +122,8 @@ public class StorageController
 		latch.countDown();
 	}
 
-	private int calculateThreadNumber(final int receiverID)
+	private int calculateThreadNumber(final int userID)
 	{
-		return receiverID % numberOfThreads;
+		return userID % numberOfThreads;
 	}
 }
