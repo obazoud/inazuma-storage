@@ -38,7 +38,7 @@ public class StorageController
 
 		for (int i = 0; i < numberOfThreads; i++)
 		{
-			threads[i] = new StorageControllerQueueThread(this, i + 1, cb, maxRetries);
+			threads[i] = new StorageControllerQueueThread(this, i + 1, hz, cb, maxRetries);
 			threads[i].start();
 		}
 

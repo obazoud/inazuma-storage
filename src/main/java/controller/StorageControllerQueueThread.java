@@ -3,6 +3,7 @@ package controller;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.carrotsearch.hppc.IntOpenHashSet;
 import com.couchbase.client.CouchbaseClient;
+import com.hazelcast.core.HazelcastInstance;
 import model.SerializedData;
 import model.StatusMessageObject;
 import model.UserLookupDocument;
@@ -23,10 +24,11 @@ class StorageControllerQueueThread extends Thread
 	private final IntOpenHashSet userOnQueue;
 	private final int threadNo;
 	private final StorageController storageController;
+	private final HazelcastInstance hz;
 	private final CouchbaseClient client;
 	private final int maxRetries;
 
-	protected StorageControllerQueueThread(final StorageController storageController, final int threadNo, final CouchbaseClient client, final int maxRetries)
+	protected StorageControllerQueueThread(final StorageController storageController, final int threadNo, final HazelcastInstance hz, final CouchbaseClient cb, final int maxRetries)
 	{
 		super("StorageController-thread-" + threadNo);
 		this.incomingQueue = new LinkedBlockingQueue<SerializedData>();
@@ -34,7 +36,8 @@ class StorageControllerQueueThread extends Thread
 		this.userOnQueue = new IntOpenHashSet();
 		this.threadNo = threadNo;
 		this.storageController = storageController;
-		this.client = client;
+		this.hz = hz;
+		this.client = cb;
 		this.maxRetries = maxRetries;
 	}
 
