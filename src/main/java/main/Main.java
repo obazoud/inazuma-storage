@@ -10,7 +10,6 @@ import jmx.JMXAgent;
 import stats.StatisticManager;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main
@@ -22,7 +21,7 @@ public class Main
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		// Get Hazelcast instance
-		final Config cfg = new com.hazelcast.config.Config();
+		final Config cfg = new Config();
 		final HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
 
 		// Get Couchbase connection
