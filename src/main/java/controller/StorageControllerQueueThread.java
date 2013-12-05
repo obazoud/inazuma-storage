@@ -186,7 +186,7 @@ class StorageControllerQueueThread extends Thread
 			catch (Exception e)
 			{
 				System.err.println("#" + threadNo + " Could not read lookup document for " + userID + ": " + e.getMessage());
-				threadSleep(tries);
+				threadSleep();
 			}
 		}
 		return null;
@@ -213,12 +213,12 @@ class StorageControllerQueueThread extends Thread
 			{
 				userLookupDocument.setLastException(e);
 				System.err.println("#" + threadNo + " Could not set lookup document for user " + userID + ": " + e.getMessage());
-				threadSleep(tries);
+				threadSleep();
 			}
 		}
 		storageController.incrementLookupRetries();
 		userLookupDocument.incrementTries();
-		threadSleep(1);
+		threadSleep();
 		return false;
 	}
 
@@ -242,12 +242,12 @@ class StorageControllerQueueThread extends Thread
 			{
 				serializedData.setLastException(e);
 				System.err.println("#" + threadNo + " Could not add " + key + " for user " + serializedData.getUserID() + ": " + e.getMessage());
-				threadSleep(tries);
+				threadSleep();
 			}
 		}
 		storageController.incrementDataRetries();
 		serializedData.incrementTries();
-		threadSleep(1);
+		threadSleep();
 		return false;
 	}
 
@@ -259,12 +259,12 @@ class StorageControllerQueueThread extends Thread
 
 	private String createDocumentKey(final String key)
 	{
-		return "data_" + key;
+		return key;
 	}
 
 	private String createLookupDocumentKey(final int userID)
 	{
-		return "user_" + userID;
+		return "u-" + userID;
 	}
 
 	private void printStatusMessage(String statusMessage, final StatusMessageObject statusMessageObject)
@@ -287,11 +287,11 @@ class StorageControllerQueueThread extends Thread
 		statusMessageObject.resetStatus();
 	}
 
-	private void threadSleep(final int tries)
+	private void threadSleep()
 	{
 		try
 		{
-			TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS * tries);
+			TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS);
 		}
 		catch (InterruptedException ignored)
 		{
