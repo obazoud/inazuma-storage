@@ -1,6 +1,7 @@
 package controller;
 
 import com.couchbase.client.CouchbaseClient;
+import com.hazelcast.core.HazelcastInstance;
 import model.SerializedData;
 import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
@@ -11,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 public class StorageController
 {
-	private final CouchbaseClient client;
+	private final HazelcastInstance hz;
+	private final CouchbaseClient cb;
 	private final int numberOfThreads;
 	private final StorageControllerQueueThread[] threads;
 	private final CountDownLatch latch;
@@ -26,16 +28,17 @@ public class StorageController
 	private final BasicStatisticValue dataRetries = new BasicStatisticValue("StorageService", "retriesData");
 	private final BasicStatisticValue dataPersisted = new BasicStatisticValue("StorageService", "persistedData");
 
-	public StorageController(final CouchbaseClient client, final int numberOfThreads, final int maxRetries)
+	public StorageController(final HazelcastInstance hz, final CouchbaseClient cb, final int numberOfThreads, final int maxRetries)
 	{
-		this.client = client;
+		this.hz = hz;
+		this.cb = cb;
 		this.numberOfThreads = numberOfThreads;
 		this.threads = new StorageControllerQueueThread[numberOfThreads];
 		this.latch = new CountDownLatch(numberOfThreads);
 
 		for (int i = 0; i < numberOfThreads; i++)
 		{
-			threads[i] = new StorageControllerQueueThread(this, i + 1, client, maxRetries);
+			threads[i] = new StorageControllerQueueThread(this, i + 1, cb, maxRetries);
 			threads[i].start();
 		}
 
@@ -52,7 +55,7 @@ public class StorageController
 	{
 		// TODO: Add exception handling
 		dataFetched.increment();
-		return String.valueOf(client.get("data_" + key));
+		return String.valueOf(cb.get("data_" + key));
 	}
 
 	public void addData(final SerializedData serializedData)
