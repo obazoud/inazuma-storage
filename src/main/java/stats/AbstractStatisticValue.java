@@ -51,7 +51,7 @@ public abstract class AbstractStatisticValue<VALUE>
 
 	public AbstractStatisticValue(final String group, final String name, final long duration)
 	{
-		this(group, name, 60, TimeUnit.SECONDS);
+		this(group, name, duration, DEFAULT_UNIT);
 	}
 
 	public AbstractStatisticValue(final String name)
@@ -86,7 +86,7 @@ public abstract class AbstractStatisticValue<VALUE>
 
 	public boolean isMemberOf(final String group)
 	{
-		return (this.group == group || (this.group != null && this.group.equals(group)));
+		return (this.group != null && this.group.equals(group));
 	}
 
 	public String getGroup()
