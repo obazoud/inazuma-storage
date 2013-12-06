@@ -1,6 +1,10 @@
 package model;
 
-public class SerializedData implements StatusMessageObject
+import com.hazelcast.core.PartitionAware;
+
+import java.io.Serializable;
+
+public class SerializedData implements StatusMessageObject, Serializable, PartitionAware
 {
 	private final int userID;
 	private final long created;
@@ -70,5 +74,11 @@ public class SerializedData implements StatusMessageObject
 	{
 		tries = 0;
 		lastException = null;
+	}
+
+	@Override
+	public Object getPartitionKey()
+	{
+		return userID;
 	}
 }

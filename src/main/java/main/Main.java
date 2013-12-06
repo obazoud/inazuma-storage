@@ -4,6 +4,7 @@ import com.couchbase.client.CouchbaseClient;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import controller.RequestController;
 import controller.StorageController;
 import database.ConnectionManager;
 import jmx.JMXAgent;
@@ -14,7 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Main
 {
-	private static final AtomicReference<StorageController> storageControllerReference = new AtomicReference<StorageController>(null);
+	private static AtomicReference<RequestController> requestControllerReference = new AtomicReference<>(null);
+	private static final AtomicReference<StorageController> storageControllerReference = new AtomicReference<>(null);
 
 	public static void main(String[] args)
 	{
@@ -30,6 +32,10 @@ public class Main
 		// Start JMX agent
 		new JMXAgent();
 
+		// Startup request handler
+		final RequestController requestController = new RequestController(hz.getExecutorService("executor"));
+		requestControllerReference.set(requestController);
+
 		// Startup storage threads
 		final StorageController storageController = new StorageController(hz, cb, InazumaConfig.STORAGE_THREADS, InazumaConfig.MAX_RETRIES);
 		storageControllerReference.set(storageController);
@@ -41,7 +47,7 @@ public class Main
 			public void run()
 			{
 				System.out.println("Receiving shutdown signal...");
-				shutdown(storageController, latch);
+				shutdown(requestController, storageController, latch);
 			}
 		}));
 
@@ -59,13 +65,23 @@ public class Main
 		System.exit(0);
 	}
 
+	public static RequestController getRequestController()
+	{
+		return requestControllerReference.get();
+	}
+
 	public static StorageController getStorageController()
 	{
 		return storageControllerReference.get();
 	}
 
-	private static void shutdown(final StorageController storageController, final CountDownLatch latch)
+	private static void shutdown(final RequestController requestController, final StorageController storageController, final CountDownLatch latch)
 	{
+		// Shutdown request controller
+		System.out.println("Shutting down RequestController...");
+		requestController.shutdown();
+		System.out.println("Done!\n");
+
 		// Shutdown storage threads
 		System.out.println("Shutting down StorageController...");
 		storageController.shutdown();

@@ -31,8 +31,8 @@ class StorageControllerQueueThread extends Thread
 	protected StorageControllerQueueThread(final StorageController storageController, final int threadNo, final HazelcastInstance hz, final CouchbaseClient cb, final int maxRetries)
 	{
 		super("StorageController-thread-" + threadNo);
-		this.incomingQueue = new LinkedBlockingQueue<SerializedData>();
-		this.lookupDocumentMap = new IntObjectOpenHashMap<UserLookupDocument>();
+		this.incomingQueue = new LinkedBlockingQueue<>();
+		this.lookupDocumentMap = new IntObjectOpenHashMap<>();
 		this.userOnQueue = new IntOpenHashSet();
 		this.threadNo = threadNo;
 		this.storageController = storageController;

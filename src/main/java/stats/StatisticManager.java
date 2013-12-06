@@ -225,7 +225,7 @@ public final class StatisticManager
 			try
 			{
 				lock.lock();
-				final List<MBeanAttributeInfo> attrs = new LinkedList<MBeanAttributeInfo>();
+				final List<MBeanAttributeInfo> attrs = new LinkedList<>();
 				for (final String attribute : statisticValues.keySet())
 				{
 					final AbstractStatisticValue<?> statisticValue = statisticValues.get(attribute);

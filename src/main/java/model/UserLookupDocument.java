@@ -25,7 +25,7 @@ public class UserLookupDocument implements StatusMessageObject
 
 	public UserLookupDocument()
 	{
-		lookup = new ConcurrentHashMap<String, Long>();
+		lookup = new ConcurrentHashMap<>();
 	}
 
 	public UserLookupDocument(final String json)

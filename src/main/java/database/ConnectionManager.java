@@ -15,7 +15,7 @@ public class ConnectionManager
 	static
 	{
 		// Set the URIs and get a client
-		List<URI> uris = new LinkedList<URI>();
+		List<URI> uris = new LinkedList<>();
 
 		// Connect to localhost or to the appropriate URI(s)
 		uris.add(URI.create("http://127.0.0.1:8091/pools"));

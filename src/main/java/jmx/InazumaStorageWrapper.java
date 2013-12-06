@@ -11,7 +11,7 @@ import java.util.UUID;
 public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 {
 	private static final int MAX_USER = 100000;
-	private static final IntObjectOpenHashMap<String> MAILS = new IntObjectOpenHashMap<String>();
+	private static final IntObjectOpenHashMap<String> MAILS = new IntObjectOpenHashMap<>();
 	private static final Random generator = new Random();
 
 	static
@@ -26,7 +26,7 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	public void insertSingleDocument()
 	{
 		final SerializedData serializedData = createRandomSerializedData();
-		Main.getStorageController().addData(serializedData);
+		Main.getRequestController().addData(serializedData);
 	}
 
 	@Override
@@ -64,13 +64,13 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	@Override
 	public String returnKeys(final int userID)
 	{
-		return Main.getStorageController().getKeys(userID);
+		return Main.getRequestController().getKeys(userID);
 	}
 
 	@Override
 	public String returnData(final String key)
 	{
-		return Main.getStorageController().getData(key);
+		return Main.getRequestController().getData(key);
 	}
 
 	private int createRandomUserID()

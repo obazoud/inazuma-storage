@@ -19,10 +19,10 @@ public class NamedThreadFactory implements ThreadFactory
 	}
 
 	@Override
-	public Thread newThread(Runnable r)
+	public Thread newThread(Runnable runnable)
 	{
 		Thread.setDefaultUncaughtExceptionHandler(UNCAUGHT_EXCEPTION_HANDLER);
-		return new Thread(group, r, namePrefix + "-thread-" + threadNumber.getAndIncrement(), 0);
+		return new Thread(group, runnable, namePrefix + "-thread-" + threadNumber.getAndIncrement(), 0);
 	}
 
 	private static final class LastExceptionHandler implements UncaughtExceptionHandler

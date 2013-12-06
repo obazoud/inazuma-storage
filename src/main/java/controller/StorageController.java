@@ -12,14 +12,13 @@ import java.util.concurrent.TimeUnit;
 
 public class StorageController
 {
-	private final HazelcastInstance hz;
 	private final CouchbaseClient cb;
 	private final int numberOfThreads;
 	private final StorageControllerQueueThread[] threads;
 	private final CountDownLatch latch;
 
-	private final BasicStatisticValue dataFetched = new BasicStatisticValue("StorageService", "dataFetched");
 	private final BasicStatisticValue dataAdded = new BasicStatisticValue("StorageService", "dataAdded");
+	private final BasicStatisticValue dataFetched = new BasicStatisticValue("StorageService", "dataFetched");
 	private final BasicStatisticValue dataDeleted = new BasicStatisticValue("StorageService", "dataDeleted");
 
 	private final BasicStatisticValue lookupRetries = new BasicStatisticValue("StorageService", "retriesLookup");
@@ -30,7 +29,6 @@ public class StorageController
 
 	public StorageController(final HazelcastInstance hz, final CouchbaseClient cb, final int numberOfThreads, final int maxRetries)
 	{
-		this.hz = hz;
 		this.cb = cb;
 		this.numberOfThreads = numberOfThreads;
 		this.threads = new StorageControllerQueueThread[numberOfThreads];
@@ -42,7 +40,7 @@ public class StorageController
 			threads[i].start();
 		}
 
-		final CustomStatisticValue queueSize = new CustomStatisticValue<Integer>("StorageService", "queueSize", new QueueSizeCollector(this));
+		final CustomStatisticValue queueSize = new CustomStatisticValue<>("StorageService", "queueSize", new QueueSizeCollector(this));
 		StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
@@ -51,17 +49,24 @@ public class StorageController
 		return threads[calculateThreadNumber(userID)].getKeys(userID);
 	}
 
-	public String getData(final String key)
-	{
-		// TODO: Add exception handling
-		dataFetched.increment();
-		return String.valueOf(cb.get("data_" + key));
-	}
-
 	public void addData(final SerializedData serializedData)
 	{
 		dataAdded.increment();
 		threads[calculateThreadNumber(serializedData.getUserID())].addData(serializedData);
+	}
+
+	public String getData(final String key)
+	{
+		try
+		{
+			dataFetched.increment();
+			return String.valueOf(cb.get(key));
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public void deleteData(final int userID, final String key)
