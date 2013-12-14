@@ -1,18 +1,21 @@
 package model;
 
 import com.hazelcast.core.PartitionAware;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-public class SerializedData implements StatusMessageObject, Serializable, PartitionAware
+public class SerializedData implements StatusMessageObject, IdentifiedDataSerializable, PartitionAware
 {
-	private final int userID;
-	private final long created;
-	private final String key;
-	private final String document;
+	private int userID;
+	private long created;
+	private String key;
+	private String document;
 
-	private int tries;
-	private Exception lastException;
+	private transient int tries;
+	private transient Exception lastException;
 
 	public SerializedData(final int userID, final long created, final String key, final String document)
 	{
@@ -23,6 +26,10 @@ public class SerializedData implements StatusMessageObject, Serializable, Partit
 
 		tries = 0;
 		lastException = null;
+	}
+
+	protected SerializedData()
+	{
 	}
 
 	public int getUserID()
@@ -80,5 +87,35 @@ public class SerializedData implements StatusMessageObject, Serializable, Partit
 	public Object getPartitionKey()
 	{
 		return userID;
+	}
+
+	@Override
+	public int getFactoryId()
+	{
+		return SerializationFactory.SERIALIZED_DATA;
+	}
+
+	@Override
+	public int getId()
+	{
+		return SerializationFactory.SERIALIZED_DATA;
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException
+	{
+		out.writeInt(userID);
+		out.writeLong(created);
+		out.writeUTF(key);
+		out.writeUTF(document);
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException
+	{
+		userID = in.readInt();
+		created = in.readLong();
+		key = in.readUTF();
+		document = in.readUTF();
 	}
 }
