@@ -10,8 +10,8 @@ public final class StatisticManager
 {
 	private static final StatisticManager INSTANCE = new StatisticManager();
 
-	private final Map<String, AbstractStatisticValue<?>> statisticValues = new HashMap<String, AbstractStatisticValue<?>>();
-	private final Set<String> statisticGroups = new HashSet<String>();
+	private final Map<String, AbstractStatisticValue<?>> statisticValues = new HashMap<>();
+	private final Set<String> statisticGroups = new HashSet<>();
 	private final Lock lock = new ReentrantLock();
 
 	private final AtomicBoolean running = new AtomicBoolean(true);

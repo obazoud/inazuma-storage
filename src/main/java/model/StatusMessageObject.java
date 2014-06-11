@@ -1,6 +1,7 @@
 package model;
 
-public interface StatusMessageObject
+@SuppressWarnings("unused")
+interface StatusMessageObject
 {
 	public int getTries();
 

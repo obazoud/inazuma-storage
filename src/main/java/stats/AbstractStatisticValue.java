@@ -3,6 +3,7 @@ package stats;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 public abstract class AbstractStatisticValue<VALUE>
 {
 	public enum Stat
@@ -10,17 +11,17 @@ public abstract class AbstractStatisticValue<VALUE>
 		SUM, COUNT, AVG, MIN, MAX
 	}
 
-	protected static final long DEFAULT_INTERVAL = 10;
-	protected static final TimeUnit DEFAULT_UNIT = TimeUnit.SECONDS;
+	static final long DEFAULT_INTERVAL = 10;
+	static final TimeUnit DEFAULT_UNIT = TimeUnit.SECONDS;
 
-	protected final ValueValidator valueValidator = new ValueValidator();
-	protected final EnumSet<Stat> stats = EnumSet.noneOf(Stat.class);
+	final ValueValidator valueValidator = new ValueValidator();
+	final EnumSet<Stat> stats = EnumSet.noneOf(Stat.class);
 
-	protected volatile VALUE lastTimeRangedValueDefault = null;
-	protected volatile VALUE lastTimeRangedValueCount = null;
-	protected volatile VALUE lastTimeRangedValueAvg = null;
-	protected volatile VALUE lastTimeRangedValueMin = null;
-	protected volatile VALUE lastTimeRangedValueMax = null;
+	volatile VALUE lastTimeRangedValueDefault = null;
+	volatile VALUE lastTimeRangedValueCount = null;
+	volatile VALUE lastTimeRangedValueAvg = null;
+	volatile VALUE lastTimeRangedValueMin = null;
+	volatile VALUE lastTimeRangedValueMax = null;
 
 	private final String group;
 	private final String name;
@@ -28,7 +29,7 @@ public abstract class AbstractStatisticValue<VALUE>
 
 	private long lastTimeRangeTick = System.nanoTime();
 
-	public AbstractStatisticValue(final String group, final String name, final long duration, final TimeUnit timeUnit) throws IllegalArgumentException
+	AbstractStatisticValue(final String group, final String name, final long duration, final TimeUnit timeUnit) throws IllegalArgumentException
 	{
 		if (name.endsWith("Cnt") || name.endsWith("Avg") || name.endsWith("Min") || name.endsWith("Max"))
 		{

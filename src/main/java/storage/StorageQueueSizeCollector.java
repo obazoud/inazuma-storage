@@ -4,7 +4,7 @@ import stats.CustomStatisticValue.ValueCollector;
 
 class StorageQueueSizeCollector implements ValueCollector<Long>
 {
-	private StorageController storageController;
+	private final StorageController storageController;
 
 	public StorageQueueSizeCollector(final StorageController storageController)
 	{

@@ -6,7 +6,7 @@ import model.SerializedData;
 
 import java.io.Serializable;
 
-public class AddDataTask implements Runnable, PartitionAware, Serializable
+class AddDataTask implements Runnable, PartitionAware, Serializable
 {
 	private final String userID;
 	private final SerializedData document;

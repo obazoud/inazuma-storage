@@ -6,7 +6,7 @@ import main.Main;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-public class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Serializable
+class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Serializable
 {
 	private final String userID;
 

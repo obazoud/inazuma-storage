@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Main
 {
-	private static AtomicReference<RequestController> requestControllerReference = new AtomicReference<>(null);
+	private static final AtomicReference<RequestController> requestControllerReference = new AtomicReference<>(null);
 	private static final AtomicReference<StorageController> storageControllerReference = new AtomicReference<>(null);
 
 	public static void main(String[] args)
