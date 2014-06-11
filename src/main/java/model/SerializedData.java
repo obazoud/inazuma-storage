@@ -4,9 +4,9 @@ import com.hazelcast.core.PartitionAware;
 
 import java.io.Serializable;
 
-public class SerializedData implements StatusMessageObject, Serializable, PartitionAware
+public class SerializedData implements StatusMessageObject, PartitionAware, Serializable
 {
-	private final int userID;
+	private final String userID;
 	private final long created;
 	private final String key;
 	private final String document;
@@ -14,7 +14,7 @@ public class SerializedData implements StatusMessageObject, Serializable, Partit
 	private int tries;
 	private Exception lastException;
 
-	public SerializedData(final int userID, final long created, final String key, final String document)
+	public SerializedData(final String userID, final long created, final String key, final String document)
 	{
 		this.userID = userID;
 		this.created = created;
@@ -25,7 +25,7 @@ public class SerializedData implements StatusMessageObject, Serializable, Partit
 		lastException = null;
 	}
 
-	public int getUserID()
+	public String getUserID()
 	{
 		return userID;
 	}

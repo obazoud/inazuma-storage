@@ -1,4 +1,4 @@
-package tasks;
+package request;
 
 import com.hazelcast.core.PartitionAware;
 import main.Main;
@@ -8,9 +8,9 @@ import java.util.concurrent.Callable;
 
 public class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Serializable
 {
-	private final int userID;
+	private final String userID;
 
-	public GetKeysFromLookupTask(int userID)
+	public GetKeysFromLookupTask(final String userID)
 	{
 		this.userID = userID;
 	}
@@ -18,7 +18,7 @@ public class GetKeysFromLookupTask implements Callable<String>, PartitionAware, 
 	@Override
 	public String call() throws Exception
 	{
-		return Main.getStorageController().getKeys(userID);
+		return Main.getStorageController().getKeysByUserID(userID);
 	}
 
 	@Override

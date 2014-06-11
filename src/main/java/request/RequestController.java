@@ -1,10 +1,10 @@
-package controller;
+package request;
 
 import main.Main;
 import model.SerializedData;
 import stats.BasicStatisticValue;
-import tasks.AddDataTask;
-import tasks.GetKeysFromLookupTask;
+import request.AddDataTask;
+import request.GetKeysFromLookupTask;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -21,7 +21,7 @@ public class RequestController
 		this.es = es;
 	}
 
-	public String getKeys(final int userID)
+	public String getKeys(final String userID)
 	{
 		try
 		{
@@ -43,7 +43,7 @@ public class RequestController
 		es.submit(task);
 	}
 
-	public String getData(String key)
+	public String getData(final String key)
 	{
 		dataFetchedRequest.increment();
 		return Main.getStorageController().getData(key);

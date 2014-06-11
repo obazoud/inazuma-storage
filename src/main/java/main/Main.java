@@ -4,8 +4,8 @@ import com.couchbase.client.CouchbaseClient;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import controller.RequestController;
-import controller.StorageController;
+import request.RequestController;
+import storage.StorageController;
 import database.ConnectionManager;
 import jmx.JMXAgent;
 import stats.StatisticManager;
@@ -37,7 +37,7 @@ public class Main
 		requestControllerReference.set(requestController);
 
 		// Startup storage threads
-		final StorageController storageController = new StorageController(hz, cb, InazumaConfig.STORAGE_THREADS, InazumaConfig.MAX_RETRIES);
+		final StorageController storageController = new StorageController(hz, cb);
 		storageControllerReference.set(storageController);
 
 		// Create shutdown event
@@ -77,7 +77,7 @@ public class Main
 
 	private static void shutdown(final RequestController requestController, final StorageController storageController, final CountDownLatch latch)
 	{
-		// Shutdown request controller
+		// Shutdown request storage
 		System.out.println("Shutting down RequestController...");
 		requestController.shutdown();
 		System.out.println("Done!\n");

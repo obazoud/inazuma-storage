@@ -1,4 +1,4 @@
-package tasks;
+package request;
 
 import com.hazelcast.core.PartitionAware;
 import main.Main;
@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 public class AddDataTask implements Runnable, PartitionAware, Serializable
 {
-	private final int userID;
+	private final String userID;
 	private final SerializedData document;
 
 	public AddDataTask(final SerializedData document)

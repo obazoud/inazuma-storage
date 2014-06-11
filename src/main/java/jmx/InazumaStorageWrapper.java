@@ -23,9 +23,16 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	}
 
 	@Override
+	public void insertSingleDocumentForUser(final int userID)
+	{
+		final SerializedData serializedData = createSerializedDataForUser(userID);
+		Main.getRequestController().addData(serializedData);
+	}
+
+	@Override
 	public void insertSingleDocument()
 	{
-		final SerializedData serializedData = createRandomSerializedData();
+		final SerializedData serializedData = createSerializedDataForUser(createRandomUserID());
 		Main.getRequestController().addData(serializedData);
 	}
 
@@ -58,11 +65,11 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	@Override
 	public String returnRandomKeys()
 	{
-		return returnKeys(createRandomUserID());
+		return returnKeys(String.valueOf(createRandomUserID()));
 	}
 
 	@Override
-	public String returnKeys(final int userID)
+	public String returnKeys(final String userID)
 	{
 		return Main.getRequestController().getKeys(userID);
 	}
@@ -78,10 +85,9 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 		return generator.nextInt(MAX_USER) + 1;
 	}
 
-	private SerializedData createRandomSerializedData()
+	private SerializedData createSerializedDataForUser(final int userID)
 	{
-		final int userID = createRandomUserID();
 		final long created = (System.currentTimeMillis() / 1000) - generator.nextInt(86400);
-		return new SerializedData(userID, created, UUID.randomUUID().toString(), MAILS.get(userID));
+		return new SerializedData(String.valueOf(userID), created, UUID.randomUUID().toString(), MAILS.get(userID));
 	}
 }

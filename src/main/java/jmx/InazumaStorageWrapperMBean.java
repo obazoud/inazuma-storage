@@ -2,15 +2,17 @@ package jmx;
 
 public interface InazumaStorageWrapperMBean
 {
+	public void insertSingleDocumentForUser(int userID);
+
 	public void insertSingleDocument();
 
 	public void insertThousandDocuments();
 
-	public void insertMultipleDocuments(int count);
+	public void insertMultipleDocuments(final int count);
 
 	public String returnRandomKeys();
 
-	public String returnKeys(int userID);
+	public String returnKeys(final String userID);
 
-	public String returnData(String key);
+	public String returnData(final String key);
 }
