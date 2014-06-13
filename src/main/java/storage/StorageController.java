@@ -18,6 +18,7 @@ public class StorageController
 {
 	private final CouchbaseClient cb;
 	private final StorageLookupController storageLookupController;
+	private final StorageDBController storageDBController;
 	private final ActorSystem actorSystem;
 	private final ActorRef storageDispatcher;
 
@@ -38,7 +39,8 @@ public class StorageController
 		this.cb = cb;
 		this.storageLookupController = new StorageLookupController(hz);
 		this.actorSystem = ActorSystem.create("MySystem");
-		this.storageDispatcher = StorageFactory.createStorageDispatcher(actorSystem, cb, this);
+		this.storageDispatcher = StorageFactory.createStorageDispatcher(actorSystem, this);
+		this.storageDBController = new StorageDBController(cb);
 
 		final CustomStatisticValue queueSize = new CustomStatisticValue<>("StorageController", "queueSize", new StorageQueueSizeCollector(this));
 		StatisticManager.getInstance().registerStatisticValue(queueSize);
@@ -108,6 +110,11 @@ public class StorageController
 	StorageLookupController getLookupController()
 	{
 		return storageLookupController;
+	}
+
+	StorageDBController getStorageDBController()
+	{
+		return storageDBController;
 	}
 
 	void incrementQueueSize()

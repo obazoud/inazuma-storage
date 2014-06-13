@@ -3,7 +3,6 @@ package storage;
 import akka.actor.ActorRef;
 import akka.actor.PoisonPill;
 import akka.actor.UntypedActor;
-import com.couchbase.client.CouchbaseClient;
 import model.SerializedData;
 import storage.messages.PersistLookupDocumentMessage;
 import storage.messages.ProcessorIdleMessage;
@@ -13,14 +12,12 @@ import java.util.concurrent.ConcurrentMap;
 
 public class StorageDispatcher extends UntypedActor
 {
-	private final CouchbaseClient cb;
 	private final StorageController storageController;
 
 	private final ConcurrentMap<String, ActorRef> storageProcessorByUserID = new ConcurrentHashMap<>();
 
-	public StorageDispatcher(final CouchbaseClient cb, final StorageController storageController)
+	public StorageDispatcher(final StorageController storageController)
 	{
-		this.cb = cb;
 		this.storageController = storageController;
 	}
 
@@ -71,7 +68,7 @@ public class StorageDispatcher extends UntypedActor
 			return maybeActor;
 		}
 
-		final ActorRef storageProcessor = StorageFactory.createStorageProcessor(context(), cb, storageController, userID);
+		final ActorRef storageProcessor = StorageFactory.createStorageProcessor(context(), storageController, userID);
 		final ActorRef previousActor = storageProcessorByUserID.putIfAbsent(userID, storageProcessor);
 
 		return (previousActor != null) ? previousActor : storageProcessor;
