@@ -19,7 +19,7 @@ public class NamedThreadFactory implements ThreadFactory
 	}
 
 	@Override
-	public Thread newThread(Runnable runnable)
+	public Thread newThread(final Runnable runnable)
 	{
 		Thread.setDefaultUncaughtExceptionHandler(UNCAUGHT_EXCEPTION_HANDLER);
 		return new Thread(group, runnable, namePrefix + "-thread-" + threadNumber.getAndIncrement(), 0);
@@ -28,7 +28,7 @@ public class NamedThreadFactory implements ThreadFactory
 	private static final class LastExceptionHandler implements UncaughtExceptionHandler
 	{
 		@Override
-		public void uncaughtException(Thread t, Throwable e)
+		public void uncaughtException(final Thread t, final Throwable e)
 		{
 			System.err.println("Uncaught throwable in thread " + t.getName() + ": " + e.getMessage());
 		}
