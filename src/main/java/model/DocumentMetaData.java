@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 public class DocumentMetadata implements PartitionAware, Serializable
 {
+	public static final int ID = 1;
+
 	private final String userID;
 	private final String key;
 	private final long created;

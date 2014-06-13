@@ -2,13 +2,18 @@ package main;
 
 import com.couchbase.client.CouchbaseClient;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import request.RequestController;
-import storage.StorageController;
 import database.ConnectionManager;
 import jmx.JMXAgent;
+import model.DocumentMetadata;
+import model.DocumentMetadataStreamSerializer;
+import model.SerializedData;
+import model.SerializedDataStreamSerializer;
+import request.RequestController;
 import stats.StatisticManager;
+import storage.StorageController;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,7 +28,13 @@ public class Main
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		// Get Hazelcast instance
+		final SerializerConfig sc = new SerializerConfig();
+		sc.setImplementation(new DocumentMetadataStreamSerializer()).setTypeClass(DocumentMetadata.class);
+		sc.setImplementation(new SerializedDataStreamSerializer()).setTypeClass(SerializedData.class);
+
 		final Config cfg = new Config();
+		cfg.getSerializationConfig().addSerializerConfig(sc);
+
 		final HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
 
 		// Get Couchbase connection

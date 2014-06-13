@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 public class SerializedData implements StatusMessageObject, PartitionAware, Serializable
 {
+	public static final int ID = 2;
+
 	private final String userID;
 	private final String key;
 	private final String document;
