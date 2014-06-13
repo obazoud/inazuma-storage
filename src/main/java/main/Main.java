@@ -28,12 +28,16 @@ public class Main
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		// Get Hazelcast instance
-		final SerializerConfig sc = new SerializerConfig();
-		sc.setImplementation(new DocumentMetadataStreamSerializer()).setTypeClass(DocumentMetadata.class);
-		sc.setImplementation(new SerializedDataStreamSerializer()).setTypeClass(SerializedData.class);
+		final SerializerConfig documentMetadataConfig = new SerializerConfig();
+		documentMetadataConfig.setImplementation(new DocumentMetadataStreamSerializer()).setTypeClass(DocumentMetadata.class);
+
+		final SerializerConfig serializedDataConfig = new SerializerConfig();
+		serializedDataConfig.setImplementation(new SerializedDataStreamSerializer()).setTypeClass(SerializedData.class);
 
 		final Config cfg = new Config();
-		cfg.getSerializationConfig().addSerializerConfig(sc);
+		cfg.getSerializationConfig()
+				.addSerializerConfig(documentMetadataConfig)
+				.addSerializerConfig(serializedDataConfig);
 
 		final HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
 
