@@ -8,12 +8,10 @@ import java.io.Serializable;
 
 class AddDataTask implements Runnable, PartitionAware, Serializable
 {
-	private final String userID;
 	private final SerializedData document;
 
 	public AddDataTask(final SerializedData document)
 	{
-		this.userID = document.getUserID();
 		this.document = document;
 	}
 
@@ -26,6 +24,6 @@ class AddDataTask implements Runnable, PartitionAware, Serializable
 	@Override
 	public Object getPartitionKey()
 	{
-		return userID;
+		return document.getPartitionKey();
 	}
 }
