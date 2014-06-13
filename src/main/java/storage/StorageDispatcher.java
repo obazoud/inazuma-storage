@@ -10,7 +10,7 @@ import storage.messages.ProcessorIdleMessage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class StorageDispatcher extends UntypedActor
+class StorageDispatcher extends UntypedActor
 {
 	private final StorageController storageController;
 
@@ -55,7 +55,7 @@ public class StorageDispatcher extends UntypedActor
 	private void dispatch(final ProcessorIdleMessage message)
 	{
 		storageProcessorByUserID.remove(message.getUserID());
-		storageController.getLookupController().evictDocument(message.getUserID());
+		storageController.getLookupController().destroyDocument(message.getUserID());
 
 		sender().tell(PoisonPill.getInstance(), self());
 	}
@@ -68,7 +68,7 @@ public class StorageDispatcher extends UntypedActor
 			return maybeActor;
 		}
 
-		final ActorRef storageProcessor = StorageFactory.createStorageProcessor(context(), storageController, userID);
+		final ActorRef storageProcessor = StorageActorFactory.createStorageProcessor(context(), storageController, userID);
 		final ActorRef previousActor = storageProcessorByUserID.putIfAbsent(userID, storageProcessor);
 
 		return (previousActor != null) ? previousActor : storageProcessor;

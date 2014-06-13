@@ -39,16 +39,16 @@ public class StorageController
 		this.cb = cb;
 		this.storageLookupController = new StorageLookupController(hz);
 		this.actorSystem = ActorSystem.create("MySystem");
-		this.storageDispatcher = StorageFactory.createStorageDispatcher(actorSystem, this);
+		this.storageDispatcher = StorageActorFactory.createStorageDispatcher(actorSystem, this);
 		this.storageDBController = new StorageDBController(cb);
 
 		final CustomStatisticValue queueSize = new CustomStatisticValue<>("StorageController", "queueSize", new StorageQueueSizeCollector(this));
 		StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
-	public String getKeysByUserID(final String userID)
+	public String getDocumentKeysByUserID(final String userID)
 	{
-		return storageLookupController.getKeysByUserID(userID);
+		return storageLookupController.getDocumentKeysByUserID(userID);
 	}
 
 	public void addData(final SerializedData serializedData)
@@ -76,13 +76,12 @@ public class StorageController
 
 	public void deleteData(final String userID, final String key)
 	{
-		if (storageLookupController.deleteByKey(userID, key))
-		{
-			// TODO add new message to delete document from database
-			storageDispatcher.tell(new PersistLookupDocumentMessage(userID), ActorRef.noSender());
+		storageLookupController.deleteByKey(userID, key);
 
-			dataDeleted.increment();
-		}
+		// TODO add new message to delete document from database
+		storageDispatcher.tell(new PersistLookupDocumentMessage(userID), ActorRef.noSender());
+
+		dataDeleted.increment();
 	}
 
 	public long getQueueSize()

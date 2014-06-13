@@ -18,7 +18,7 @@ class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Seriali
 	@Override
 	public String call() throws Exception
 	{
-		return Main.getStorageController().getKeysByUserID(userID);
+		return Main.getStorageController().getDocumentKeysByUserID(userID);
 	}
 
 	@Override

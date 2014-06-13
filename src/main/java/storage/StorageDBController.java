@@ -5,7 +5,7 @@ import net.spy.memcached.internal.OperationFuture;
 
 import java.util.concurrent.ExecutionException;
 
-public class StorageDBController
+class StorageDBController
 {
 	private final CouchbaseClient cb;
 

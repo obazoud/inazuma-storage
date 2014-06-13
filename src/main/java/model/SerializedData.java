@@ -7,19 +7,19 @@ import java.io.Serializable;
 public class SerializedData implements StatusMessageObject, PartitionAware, Serializable
 {
 	private final String userID;
-	private final long created;
 	private final String key;
 	private final String document;
+	private final long created;
 
 	private int tries;
 	private Exception lastException;
 
-	public SerializedData(final String userID, final long created, final String key, final String document)
+	public SerializedData(final String userID, final String key, final String document, final long created)
 	{
 		this.userID = userID;
-		this.created = created;
 		this.key = key;
 		this.document = document;
+		this.created = created;
 
 		tries = 0;
 		lastException = null;
@@ -30,11 +30,6 @@ public class SerializedData implements StatusMessageObject, PartitionAware, Seri
 		return userID;
 	}
 
-	public long getCreated()
-	{
-		return created;
-	}
-
 	public String getKey()
 	{
 		return key;
@@ -43,6 +38,11 @@ public class SerializedData implements StatusMessageObject, PartitionAware, Seri
 	public String getDocument()
 	{
 		return document;
+	}
+
+	public long getCreated()
+	{
+		return created;
 	}
 
 	@Override

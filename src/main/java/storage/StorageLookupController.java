@@ -1,13 +1,11 @@
 package storage;
 
-import com.google.gson.Gson;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.MultiMap;
+import com.hazelcast.core.IMap;
 import model.DocumentMetadata;
 import model.SerializedData;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 class StorageLookupController
 {
@@ -18,71 +16,43 @@ class StorageLookupController
 		this.hz = hz;
 	}
 
-	void populateDocument(final String userID, final String json)
+	void createDocument(final String userID, final Collection<DocumentMetadata> documentMetadataCollection)
 	{
-		if (json != null)
-		{
-			final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
+		final IMap<String, DocumentMetadata> documentMetadataMap = getMap(userID);
 
-			final Collection<DocumentMetadata> metadataCollection = StorageFactory.createDocumentMetadataCollection(json);
-			for (DocumentMetadata documentMetadata : metadataCollection)
-			{
-				documentMetadataMultiMap.put(userID, documentMetadata);
-			}
+		for (final DocumentMetadata documentMetadata : documentMetadataCollection)
+		{
+			documentMetadataMap.put(documentMetadata.getKey(), documentMetadata);
 		}
 	}
 
-	void evictDocument(final String userID)
+	void destroyDocument(final String userID)
 	{
-		final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
-
-		documentMetadataMultiMap.remove(userID);
+		getMap(userID).destroy();
 	}
 
 	void addSerializedData(final SerializedData serializedData)
 	{
-		final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
-
-		documentMetadataMultiMap.put(serializedData.getUserID(), new DocumentMetadata(serializedData.getUserID(), serializedData.getKey(), serializedData.getCreated()));
+		getMap(serializedData.getUserID()).set(serializedData.getKey(), new DocumentMetadata(serializedData));
 	}
 
-	boolean deleteByKey(final String userID, final String key)
+	void deleteByKey(final String userID, final String key)
 	{
-		final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
-
-		final Collection<DocumentMetadata> metadataCollection = documentMetadataMultiMap.get(userID);
-		for (DocumentMetadata documentMetadata : metadataCollection)
-		{
-			if (documentMetadata.getKey().equals(key))
-			{
-				documentMetadataMultiMap.remove(userID, documentMetadata);
-
-				return true;
-			}
-		}
-
-		return false;
+		getMap(userID).delete(key);
 	}
 
-	String getKeysByUserID(final String userID)
+	String getDocumentKeysByUserID(final String userID)
 	{
-		final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
-		final Collection<DocumentMetadata> documentMetadataCollection = documentMetadataMultiMap.get(userID);
-
-		final HashSet<String> keys = new HashSet<>();
-		for (DocumentMetadata documentMetadata : documentMetadataCollection)
-		{
-			keys.add(documentMetadata.getKey());
-		}
-
-		return keys.toString();
+		return getMap(userID).keySet().toString();
 	}
 
-	String getJSONDocument(final String userID)
+	Collection<DocumentMetadata> getDocumentMetadataCollection(final String userID)
 	{
-		final MultiMap<String, DocumentMetadata> documentMetadataMultiMap = hz.getMultiMap("lookup");
-		final Collection<DocumentMetadata> documentMetadataCollection = documentMetadataMultiMap.get(userID);
+		return getMap(userID).values();
+	}
 
-		return new Gson().toJson(documentMetadataCollection);
+	private IMap<String, DocumentMetadata> getMap(final String userID)
+	{
+		return hz.getMap("lookup-" + userID);
 	}
 }

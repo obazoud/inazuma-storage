@@ -88,6 +88,6 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	private SerializedData createSerializedDataForUser(final int userID)
 	{
 		final long created = (System.currentTimeMillis() / 1000) - generator.nextInt(86400);
-		return new SerializedData(String.valueOf(userID), created, UUID.randomUUID().toString(), MAILS.get(userID));
+		return new SerializedData(String.valueOf(userID), UUID.randomUUID().toString(), MAILS.get(userID), created);
 	}
 }

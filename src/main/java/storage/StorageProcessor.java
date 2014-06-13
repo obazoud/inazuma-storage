@@ -4,6 +4,7 @@ import akka.actor.ReceiveTimeout;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import gson.GsonWrapper;
 import model.SerializedData;
 import scala.concurrent.duration.Duration;
 import storage.messages.PersistLookupDocumentMessage;
@@ -12,10 +13,12 @@ import storage.messages.ProcessorIdleMessage;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
-public class StorageProcessor extends UntypedActor
+class StorageProcessor extends UntypedActor
 {
 	private final StorageController storageController;
 	private final String userID;
+
+	private final GsonWrapper gson;
 
 	private final HashSet<String> lookupDocumentsInQueue = new HashSet<>();
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
@@ -25,8 +28,13 @@ public class StorageProcessor extends UntypedActor
 		this.storageController = storageController;
 		this.userID = userID;
 
+		this.gson = new GsonWrapper(userID);
+
 		final String userLookupDocumentObject = storageController.getStorageDBController().getUserLookupDocument(userID);
-		storageController.getLookupController().populateDocument(userID, userLookupDocumentObject);
+		if (userLookupDocumentObject != null)
+		{
+			storageController.getLookupController().createDocument(userID, gson.getDocumentMetadataCollection(userLookupDocumentObject));
+		}
 	}
 
 	@Override
@@ -94,10 +102,11 @@ public class StorageProcessor extends UntypedActor
 		lookupDocumentsInQueue.remove(userID);
 
 		final String userID = message.getUserID();
+		final String lookupDocument = gson.toJson(storageController.getLookupController().getDocumentMetadataCollection(userID));
 
 		try
 		{
-			storageController.getStorageDBController().storeLookupDocument(userID, storageController.getLookupController().getJSONDocument(userID));
+			storageController.getStorageDBController().storeLookupDocument(userID, lookupDocument);
 		}
 		catch (Exception e)
 		{
