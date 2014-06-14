@@ -14,7 +14,6 @@ import storage.messages.ProcessorIdleMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 class StorageProcessor extends UntypedActor
@@ -24,11 +23,11 @@ class StorageProcessor extends UntypedActor
 
 	private final GsonWrapper gson;
 
-	private final HashSet<String> lookupDocumentsInQueue = new HashSet<>();
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
 	private boolean isReady = false;
+	private boolean lookupDocumentInQueue = false;
+	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
 
 	public StorageProcessor(final StorageController storageController, final String userID)
 	{
@@ -118,9 +117,9 @@ class StorageProcessor extends UntypedActor
 		//storageController.getLookupController().addSerializedData(userID, documentMetadata);
 		storageController.incrementDataPersisted();
 
-		if (!lookupDocumentsInQueue.contains(userID))
+		if (!lookupDocumentInQueue)
 		{
-			lookupDocumentsInQueue.add(userID);
+			lookupDocumentInQueue = true;
 
 			storageController.incrementQueueSize();
 			context().parent().tell(new PersistLookupDocumentMessage(userID), getSelf());
@@ -129,7 +128,7 @@ class StorageProcessor extends UntypedActor
 
 	private void processLookupDocument(final PersistLookupDocumentMessage message)
 	{
-		lookupDocumentsInQueue.remove(userID);
+		lookupDocumentInQueue = false;
 
 		final String userID = message.getUserID();
 		final String lookupDocument = gson.toJson(documentMetadataCollection);
