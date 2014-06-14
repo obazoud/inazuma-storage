@@ -100,9 +100,6 @@ class StorageProcessor extends UntypedActor
 		{
 			log.error("Could not add {} for user {}: {}", serializedData.getKey(), userID, e.getMessage());
 
-			serializedData.incrementTries();
-			serializedData.setLastException(e);
-
 			storageController.incrementDataRetries();
 			context().system().scheduler().scheduleOnce(
 					Duration.create(DELAY, DELAY_UNIT),
