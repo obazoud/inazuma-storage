@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.actor.PoisonPill;
 import akka.actor.UntypedActor;
 import model.SerializedData;
+import storage.messages.CreateLookupDocumentMessage;
 import storage.messages.PersistLookupDocumentMessage;
 import storage.messages.ProcessorIdleMessage;
 
@@ -32,6 +33,10 @@ class StorageDispatcher extends UntypedActor
 		{
 			dispatch((PersistLookupDocumentMessage) message);
 		}
+		else if (message instanceof CreateLookupDocumentMessage)
+		{
+			dispatch((CreateLookupDocumentMessage) message);
+		}
 		else if (message instanceof ProcessorIdleMessage)
 		{
 			dispatch((ProcessorIdleMessage) message);
@@ -42,20 +47,24 @@ class StorageDispatcher extends UntypedActor
 		}
 	}
 
-	private void dispatch(final SerializedData data)
+	private void dispatch(final SerializedData message)
 	{
-		findOrCreateProcessorFor(data.getUserID()).tell(data, self());
+		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
 	}
 
-	private void dispatch(final PersistLookupDocumentMessage data)
+	private void dispatch(final PersistLookupDocumentMessage message)
 	{
-		findOrCreateProcessorFor(data.getUserID()).tell(data, self());
+		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
+	}
+
+	private void dispatch(final CreateLookupDocumentMessage message)
+	{
+		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
 	}
 
 	private void dispatch(final ProcessorIdleMessage message)
 	{
 		storageProcessorByUserID.remove(message.getUserID());
-		storageController.getLookupController().destroyDocument(message.getUserID());
 
 		sender().tell(PoisonPill.getInstance(), self());
 	}

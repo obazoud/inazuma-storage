@@ -7,6 +7,7 @@ import akka.event.LoggingAdapter;
 import gson.GsonWrapper;
 import model.SerializedData;
 import scala.concurrent.duration.Duration;
+import storage.messages.CreateLookupDocumentMessage;
 import storage.messages.PersistLookupDocumentMessage;
 import storage.messages.ProcessorIdleMessage;
 
@@ -23,6 +24,8 @@ class StorageProcessor extends UntypedActor
 	private final HashSet<String> lookupDocumentsInQueue = new HashSet<>();
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
+	private boolean isReady = false;
+
 	public StorageProcessor(final StorageController storageController, final String userID)
 	{
 		this.storageController = storageController;
@@ -30,11 +33,7 @@ class StorageProcessor extends UntypedActor
 
 		this.gson = new GsonWrapper(userID);
 
-		final String userLookupDocumentObject = storageController.getStorageDBController().getUserLookupDocument(userID);
-		if (userLookupDocumentObject != null)
-		{
-			storageController.getLookupController().createDocument(userID, gson.getDocumentMetadataCollection(userLookupDocumentObject));
-		}
+		processCreateLookupDocumentMessage(new CreateLookupDocumentMessage(userID));
 	}
 
 	@Override
@@ -46,17 +45,29 @@ class StorageProcessor extends UntypedActor
 	@Override
 	public void onReceive(Object message) throws Exception
 	{
-		if (message instanceof SerializedData)
+		if (message instanceof CreateLookupDocumentMessage)
+		{
+			processCreateLookupDocumentMessage((CreateLookupDocumentMessage) message);
+		}
+		else if (message instanceof ReceiveTimeout)
+		{
+			isReady = false;
+			storageController.incrementStorageProcessorDestroyed();
+			storageController.getLookupController().destroyDocument(userID);
+
+			context().parent().tell(new ProcessorIdleMessage(userID), self());
+		}
+		else if (!isReady)
+		{
+			context().parent().tell(message, self());
+		}
+		else if (message instanceof SerializedData)
 		{
 			processSerializedData((SerializedData) message);
 		}
 		else if (message instanceof PersistLookupDocumentMessage)
 		{
 			processLookupDocument((PersistLookupDocumentMessage) message);
-		}
-		else if (message instanceof ReceiveTimeout)
-		{
-			context().parent().tell(new ProcessorIdleMessage(userID), self());
 		}
 		else
 		{
@@ -119,5 +130,26 @@ class StorageProcessor extends UntypedActor
 		}
 
 		storageController.incrementLookupPersisted();
+	}
+
+	private void processCreateLookupDocumentMessage(final CreateLookupDocumentMessage message)
+	{
+		try
+		{
+			final String userLookupDocumentObject = storageController.getStorageDBController().getUserLookupDocument(userID);
+			if (userLookupDocumentObject != null)
+			{
+				storageController.getLookupController().createDocument(userID, gson.getDocumentMetadataCollection(userLookupDocumentObject));
+			}
+
+			storageController.incrementStorageProcessorCreated();
+			isReady = true;
+		}
+		catch (Exception e)
+		{
+			log.error("Could not create lookup document for user {}: {}", userID, e.getMessage());
+
+			context().parent().tell(message, getSelf());
+		}
 	}
 }

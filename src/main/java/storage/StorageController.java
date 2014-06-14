@@ -34,6 +34,9 @@ public class StorageController
 	private final BasicStatisticValue dataRetries = new BasicStatisticValue("StorageController", "retriesData");
 	private final BasicStatisticValue dataPersisted = new BasicStatisticValue("StorageController", "persistedData");
 
+	private final BasicStatisticValue storageProcessorCreated = new BasicStatisticValue("StorageController", "processorsCreated");
+	private final BasicStatisticValue storageProcessorDestroyed = new BasicStatisticValue("StorageController", "processorsDestroyed");
+
 	public StorageController(final HazelcastInstance hz, final CouchbaseClient cb)
 	{
 		this.cb = cb;
@@ -141,5 +144,15 @@ public class StorageController
 	{
 		queueSize.decrementAndGet();
 		dataPersisted.increment();
+	}
+
+	void incrementStorageProcessorCreated()
+	{
+		storageProcessorCreated.increment();
+	}
+
+	void incrementStorageProcessorDestroyed()
+	{
+		storageProcessorDestroyed.increment();
 	}
 }
