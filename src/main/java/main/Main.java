@@ -52,7 +52,7 @@ public class Main
 		requestControllerReference.set(requestController);
 
 		// Startup storage threads
-		final StorageController storageController = new StorageController(hz, cb);
+		final StorageController storageController = new StorageController(cb);
 		storageControllerReference.set(storageController);
 
 		// Create shutdown event

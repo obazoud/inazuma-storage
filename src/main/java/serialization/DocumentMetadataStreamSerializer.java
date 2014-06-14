@@ -13,7 +13,6 @@ public class DocumentMetadataStreamSerializer implements StreamSerializer<Docume
 	public void write(final ObjectDataOutput out, final DocumentMetadata object) throws IOException
 	{
 		out.writeUTF((String) object.getPartitionKey());
-		out.writeUTF(object.getKey());
 		out.writeLong(object.getCreated());
 		out.writeBoolean(object.isRead());
 	}
@@ -21,7 +20,7 @@ public class DocumentMetadataStreamSerializer implements StreamSerializer<Docume
 	@Override
 	public DocumentMetadata read(final ObjectDataInput in) throws IOException
 	{
-		return new DocumentMetadata(in.readUTF(), in.readUTF(), in.readLong(), in.readBoolean());
+		return new DocumentMetadata(in.readUTF(), in.readLong(), in.readBoolean());
 	}
 
 	@Override

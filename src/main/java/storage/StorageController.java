@@ -3,15 +3,14 @@ package storage;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.couchbase.client.CouchbaseClient;
-import com.hazelcast.core.HazelcastInstance;
-import storage.messages.DeleteDocumentMessage;
-import storage.messages.FetchDocumentMetadataMessage;
-import storage.messages.PersistDocumentMessage;
 import scala.concurrent.duration.Duration;
 import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
 import stats.StatisticManager;
 import storage.callbacks.FetchDocumentMetadataCallback;
+import storage.messages.DeleteDocumentMessage;
+import storage.messages.FetchDocumentMetadataMessage;
+import storage.messages.PersistDocumentMessage;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,7 +18,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StorageController
 {
 	private final CouchbaseClient cb;
-	private final StorageDocumentMetadataController storageDocumentMetadataController;
 	private final StorageDBController storageDBController;
 	private final ActorSystem actorSystem;
 	private final ActorRef storageDispatcher;
@@ -39,10 +37,9 @@ public class StorageController
 	private final BasicStatisticValue storageProcessorCreated = new BasicStatisticValue("StorageController", "processorsCreated");
 	private final BasicStatisticValue storageProcessorDestroyed = new BasicStatisticValue("StorageController", "processorsDestroyed");
 
-	public StorageController(final HazelcastInstance hz, final CouchbaseClient cb)
+	public StorageController(final CouchbaseClient cb)
 	{
 		this.cb = cb;
-		this.storageDocumentMetadataController = new StorageDocumentMetadataController(hz);
 		this.actorSystem = ActorSystem.create("InazumaStorage");
 		this.storageDispatcher = StorageActorFactory.createStorageDispatcher(actorSystem, this);
 		this.storageDBController = new StorageDBController(cb);
@@ -82,9 +79,9 @@ public class StorageController
 		return null;
 	}
 
-	public void deleteDocument(final String userID, final String key)
+	public void deleteDocument(final DeleteDocumentMessage message)
 	{
-		storageDispatcher.tell(new DeleteDocumentMessage(userID, key), ActorRef.noSender());
+		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
 	public long getQueueSize()
@@ -107,11 +104,6 @@ public class StorageController
 	public void awaitShutdown()
 	{
 		actorSystem.awaitTermination(Duration.create(60, TimeUnit.MINUTES));
-	}
-
-	StorageDocumentMetadataController getStorageDocumentMetadataController()
-	{
-		return storageDocumentMetadataController;
 	}
 
 	StorageDBController getStorageDBController()
@@ -150,6 +142,7 @@ public class StorageController
 	{
 		documentDeleted.increment();
 	}
+
 	void incrementStorageProcessorCreated()
 	{
 		storageProcessorCreated.increment();

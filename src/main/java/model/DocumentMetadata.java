@@ -10,26 +10,19 @@ public class DocumentMetadata implements PartitionAware, Serializable
 	public static final int ID = 1;
 
 	private final String userID;
-	private final String key;
 	private final long created;
 	private boolean read;
 
 	public DocumentMetadata(final PersistDocumentMessage message)
 	{
-		this(message.getUserID(), message.getKey(), message.getCreated(), false);
+		this(message.getUserID(), message.getCreated(), false);
 	}
 
-	public DocumentMetadata(final String userID, final String key, final long created, final boolean read)
+	public DocumentMetadata(final String userID, final long created, final boolean read)
 	{
 		this.userID = userID;
-		this.key = key;
 		this.created = created;
 		this.read = read;
-	}
-
-	public String getKey()
-	{
-		return key;
 	}
 
 	public long getCreated()

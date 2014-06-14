@@ -9,8 +9,8 @@ import scala.concurrent.duration.Duration;
 import serialization.GsonController;
 import storage.messages.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 class StorageProcessor extends UntypedActor
@@ -26,7 +26,7 @@ class StorageProcessor extends UntypedActor
 
 	private boolean isReady = false;
 	private boolean persistDocumentMetadataMessageInQueue = false;
-	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
+	private Map<String, DocumentMetadata> documentMetadataMap = new HashMap<>();
 
 	public StorageProcessor(final StorageController storageController, final String userID)
 	{
@@ -98,8 +98,7 @@ class StorageProcessor extends UntypedActor
 	private void processReceivedTimeout()
 	{
 		isReady = false;
-		documentMetadataCollection.clear();
-		//storageController.getStorageDocumentMetadataController().destroyDocument(userID);
+		documentMetadataMap.clear();
 		storageController.incrementStorageProcessorDestroyed();
 
 		context().parent().tell(new StorageProcessorIdleMessage(userID), self());
@@ -109,22 +108,12 @@ class StorageProcessor extends UntypedActor
 	{
 		try
 		{
-			//final Collection<DocumentMetadata> maybeCollection = storageController.getStorageDocumentMetadataController().getDocumentMetadataCollection(userID);
-			//if (maybeCollection != null && maybeCollection.size() > 0)
-			//{
-			//	documentMetadataCollection.set(maybeCollection);
-			//	isReady = true;
-			//
-			//	return;
-			//}
-
 			final String documentMetadataJSON = storageController.getStorageDBController().getUserDocumentMetadata(userID);
 			if (documentMetadataJSON != null)
 			{
-				documentMetadataCollection = gson.getDocumentMetadataCollection(documentMetadataJSON);
-				//storageController.getStorageDocumentMetadataController().createDocument(userID, documentMetadataCollection);
+				documentMetadataMap = gson.getDocumentMetadataMap(documentMetadataJSON);
 
-				if (documentMetadataCollection == null)
+				if (documentMetadataMap == null)
 				{
 					throw new RuntimeException("Document metadata for user " + userID + " is null! " + documentMetadataJSON);
 				}
@@ -147,7 +136,7 @@ class StorageProcessor extends UntypedActor
 
 		try
 		{
-			storageController.getStorageDBController().storeDocumentMetadata(userID, gson.toJson(documentMetadataCollection));
+			storageController.getStorageDBController().storeDocumentMetadata(userID, gson.toJson(documentMetadataMap));
 		}
 		catch (Exception e)
 		{
@@ -164,7 +153,7 @@ class StorageProcessor extends UntypedActor
 
 	private void processFetchDocumentMetadata(final FetchDocumentMetadataMessage message)
 	{
-		message.getCallback().setResult(gson.toJson(documentMetadataCollection));
+		message.getCallback().setResult(gson.toJson(documentMetadataMap));
 	}
 
 	private void processPersistDocument(final PersistDocumentMessage message)
@@ -184,8 +173,7 @@ class StorageProcessor extends UntypedActor
 		}
 
 		final DocumentMetadata documentMetadata = new DocumentMetadata(message);
-		documentMetadataCollection.add(documentMetadata);
-		//storageController.getStorageDocumentMetadataController().addDocumentMetadata(userID, documentMetadata);
+		documentMetadataMap.put(message.getKey(), documentMetadata);
 		storageController.incrementDataPersisted();
 
 		if (!persistDocumentMetadataMessageInQueue)
@@ -202,6 +190,9 @@ class StorageProcessor extends UntypedActor
 		try
 		{
 			storageController.getStorageDBController().deleteDocument(message.getKey());
+			documentMetadataMap.remove(message.getKey());
+
+			context().parent().tell(new PersistDocumentMetadataMessage(userID), getSelf());
 		}
 		catch (Exception e)
 		{

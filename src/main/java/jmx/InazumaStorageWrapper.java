@@ -2,6 +2,7 @@ package jmx;
 
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import main.Main;
+import storage.messages.DeleteDocumentMessage;
 import storage.messages.PersistDocumentMessage;
 import util.NamedThreadFactory;
 
@@ -77,6 +78,13 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	public String returnDocument(final String key)
 	{
 		return Main.getRequestController().getDocument(key);
+	}
+
+	@Override
+	public void deleteDocument(final String userID, final String key)
+	{
+		final DeleteDocumentMessage message = new DeleteDocumentMessage(userID, key);
+		Main.getRequestController().deleteDocument(message);
 	}
 
 	private int createRandomUserID()

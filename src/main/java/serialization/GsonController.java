@@ -6,20 +6,19 @@ import com.google.gson.reflect.TypeToken;
 import model.DocumentMetadata;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
+import java.util.Map;
 
 public class GsonController
 {
-	private static final Type typeOfCollection;
+	private static final Type typeOfMap;
 
 	private final Gson gson;
 
 	static
 	{
-		TypeToken<Collection<DocumentMetadata>> typeToken = new TypeToken<Collection<DocumentMetadata>>()
+		typeOfMap = new TypeToken<Map<String, DocumentMetadata>>()
 		{
-		};
-		typeOfCollection = typeToken.getType();
+		}.getType();
 	}
 
 	public GsonController(final String userID)
@@ -30,13 +29,13 @@ public class GsonController
 		this.gson = builder.create();
 	}
 
-	public Collection<DocumentMetadata> getDocumentMetadataCollection(final String json)
+	public Map<String, DocumentMetadata> getDocumentMetadataMap(final String json)
 	{
-		return gson.fromJson(json, typeOfCollection);
+		return gson.fromJson(json, typeOfMap);
 	}
 
-	public String toJson(final Collection<DocumentMetadata> documentMetadataCollection)
+	public String toJson(final Map<String, DocumentMetadata> documentMetadataMap)
 	{
-		return gson.toJson(documentMetadataCollection, typeOfCollection);
+		return gson.toJson(documentMetadataMap, typeOfMap);
 	}
 }

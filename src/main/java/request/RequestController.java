@@ -1,6 +1,7 @@
 package request;
 
 import main.Main;
+import storage.messages.DeleteDocumentMessage;
 import storage.messages.PersistDocumentMessage;
 import stats.BasicStatisticValue;
 
@@ -13,6 +14,7 @@ public class RequestController
 
 	private final BasicStatisticValue documentAddedRequest = new BasicStatisticValue("RequestController", "documentAddedRequest");
 	private final BasicStatisticValue documentFetchedRequest = new BasicStatisticValue("RequestController", "documentFetchedRequest");
+	private final BasicStatisticValue documentDeletedRequest = new BasicStatisticValue("RequestController", "documentDeletedRequest");
 
 	public RequestController(ExecutorService es)
 	{
@@ -45,6 +47,13 @@ public class RequestController
 	{
 		documentFetchedRequest.increment();
 		return Main.getStorageController().getDocument(key);
+	}
+
+	public void deleteDocument(final DeleteDocumentMessage message)
+	{
+		documentDeletedRequest.increment();
+		final DeleteDocumentTask task = new DeleteDocumentTask(message);
+		es.submit(task);
 	}
 
 	public void shutdown()

@@ -19,7 +19,6 @@ class DocumentMetadataAdapter implements JsonSerializer<DocumentMetadata>, JsonD
 	{
 		final JsonObject object = new JsonObject();
 
-		object.addProperty("k", documentMetadata.getKey());
 		object.addProperty("c", documentMetadata.getCreated());
 		object.addProperty("r", documentMetadata.isRead() ? 1 : 0);
 
@@ -32,7 +31,6 @@ class DocumentMetadataAdapter implements JsonSerializer<DocumentMetadata>, JsonD
 		final JsonObject object = jsonElement.getAsJsonObject();
 		return new DocumentMetadata(
 				userID,
-				object.get("k").getAsString(),
 				object.get("c").getAsLong(),
 				object.get("r").getAsBoolean()
 		);
