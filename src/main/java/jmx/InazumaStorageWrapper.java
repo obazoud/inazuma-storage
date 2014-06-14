@@ -26,7 +26,7 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	public void insertSingleDocumentForUser(final int userID)
 	{
 		final PersistDocumentMessage message = createDocumentForUser(userID);
-		Main.getRequestController().addData(message);
+		Main.getRequestController().addDocument(message);
 	}
 
 	@Override
@@ -74,9 +74,9 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	}
 
 	@Override
-	public String returnData(final String key)
+	public String returnDocument(final String key)
 	{
-		return Main.getRequestController().getData(key);
+		return Main.getRequestController().getDocument(key);
 	}
 
 	private int createRandomUserID()

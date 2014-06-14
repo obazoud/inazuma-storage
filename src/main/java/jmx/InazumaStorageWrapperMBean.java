@@ -15,5 +15,5 @@ public interface InazumaStorageWrapperMBean
 
 	public String returnDocumentMetadata(final String userID);
 
-	public String returnData(final String key);
+	public String returnDocument(final String key);
 }

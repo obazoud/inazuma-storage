@@ -18,7 +18,7 @@ class AddDocumentTask implements Runnable, PartitionAware, Serializable
 	@Override
 	public void run()
 	{
-		Main.getStorageController().addData(document);
+		Main.getStorageController().addDocument(document);
 	}
 
 	@Override

@@ -42,7 +42,7 @@ public class StorageController
 	{
 		this.cb = cb;
 		this.storageDocumentMetadataController = new StorageDocumentMetadataController(hz);
-		this.actorSystem = ActorSystem.create("MySystem");
+		this.actorSystem = ActorSystem.create("InazumaStorage");
 		this.storageDispatcher = StorageActorFactory.createStorageDispatcher(actorSystem, this);
 		this.storageDBController = new StorageDBController(cb);
 
@@ -50,7 +50,7 @@ public class StorageController
 		StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
-	public String getDocumentMetadataByUserID(final String userID)
+	public String getDocumentMetadata(final String userID)
 	{
 		final FetchDocumentMetadataCallback callback = new FetchDocumentMetadataCallback();
 		storageDispatcher.tell(new FetchDocumentMetadataMessage(userID, callback), ActorRef.noSender());
@@ -58,14 +58,14 @@ public class StorageController
 		return callback.getResult();
 	}
 
-	public void addData(final PersistDocumentMessage message)
+	public void addDocument(final PersistDocumentMessage message)
 	{
 		queueSize.incrementAndGet();
 		documentAdded.increment();
 		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
-	public String getData(final String key)
+	public String getDocument(final String key)
 	{
 		try
 		{
@@ -81,10 +81,10 @@ public class StorageController
 		return null;
 	}
 
-	public void deleteData(final String userID, final String key)
+	public void deleteDocument(final String userID, final String key)
 	{
 		// TODO add new message to delete document from database
-		//storageDispatcher.tell(new DeleteDocument(userID, key), ActorRef.noSender());
+		//storageDispatcher.tell(new DeleteDocumentMessage(userID, key), ActorRef.noSender());
 
 		documentDeleted.increment();
 	}

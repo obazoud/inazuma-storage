@@ -18,7 +18,7 @@ class GetDocumentMetadataTask implements Callable<String>, PartitionAware, Seria
 	@Override
 	public String call() throws Exception
 	{
-		return Main.getStorageController().getDocumentMetadataByUserID(userID);
+		return Main.getStorageController().getDocumentMetadata(userID);
 	}
 
 	@Override

@@ -11,8 +11,8 @@ public class RequestController
 {
 	private final ExecutorService es;
 
-	private final BasicStatisticValue dataAddedRequest = new BasicStatisticValue("RequestController", "dataAddedRequest");
-	private final BasicStatisticValue dataFetchedRequest = new BasicStatisticValue("RequestController", "dataFetchedRequest");
+	private final BasicStatisticValue documentAddedRequest = new BasicStatisticValue("RequestController", "documentAddedRequest");
+	private final BasicStatisticValue documentFetchedRequest = new BasicStatisticValue("RequestController", "documentFetchedRequest");
 
 	public RequestController(ExecutorService es)
 	{
@@ -34,17 +34,17 @@ public class RequestController
 		return null;
 	}
 
-	public void addData(final PersistDocumentMessage message)
+	public void addDocument(final PersistDocumentMessage message)
 	{
-		dataAddedRequest.increment();
+		documentAddedRequest.increment();
 		final AddDocumentTask task = new AddDocumentTask(message);
 		es.submit(task);
 	}
 
-	public String getData(final String key)
+	public String getDocument(final String key)
 	{
-		dataFetchedRequest.increment();
-		return Main.getStorageController().getData(key);
+		documentFetchedRequest.increment();
+		return Main.getStorageController().getDocument(key);
 	}
 
 	public void shutdown()
