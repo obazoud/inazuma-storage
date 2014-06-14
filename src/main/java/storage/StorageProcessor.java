@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 
 class StorageProcessor extends UntypedActor
 {
+	private static final long DELAY = 50;
+	private static final TimeUnit DELAY_UNIT = TimeUnit.MILLISECONDS;
+
 	private final StorageController storageController;
 	private final String userID;
 
@@ -64,7 +67,7 @@ class StorageProcessor extends UntypedActor
 		else if (!isReady)
 		{
 			context().system().scheduler().scheduleOnce(
-					Duration.create(50, TimeUnit.MILLISECONDS),
+					Duration.create(DELAY, DELAY_UNIT),
 					context().parent(),
 					message,
 					context().system().dispatcher(),
@@ -102,7 +105,7 @@ class StorageProcessor extends UntypedActor
 
 			storageController.incrementDataRetries();
 			context().system().scheduler().scheduleOnce(
-					Duration.create(50, TimeUnit.MILLISECONDS),
+					Duration.create(DELAY, DELAY_UNIT),
 					context().parent(),
 					serializedData,
 					context().system().dispatcher(),
@@ -143,7 +146,7 @@ class StorageProcessor extends UntypedActor
 
 			storageController.incrementLookupRetries();
 			context().system().scheduler().scheduleOnce(
-					Duration.create(50, TimeUnit.MILLISECONDS),
+					Duration.create(DELAY, DELAY_UNIT),
 					context().parent(),
 					message,
 					context().system().dispatcher(),
