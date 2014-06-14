@@ -6,11 +6,9 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import gson.GsonWrapper;
 import model.DocumentMetadata;
-import model.SerializedData;
+import storage.messages.*;
+import storage.messages.PersistDocumentMessage;
 import scala.concurrent.duration.Duration;
-import storage.messages.CreateLookupDocumentMessage;
-import storage.messages.PersistLookupDocumentMessage;
-import storage.messages.ProcessorIdleMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +26,7 @@ class StorageProcessor extends UntypedActor
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
 	private boolean isReady = false;
-	private boolean lookupDocumentInQueue = false;
+	private boolean PeristDocumentMetadataMessageInQueue = false;
 	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
 
 	public StorageProcessor(final StorageController storageController, final String userID)
@@ -37,7 +35,7 @@ class StorageProcessor extends UntypedActor
 		this.userID = userID;
 		this.gson = new GsonWrapper(userID);
 
-		processCreateLookupDocumentMessage(new CreateLookupDocumentMessage(userID));
+		processLoadDocumentMetadataMessage(new LoadDocumentMetadataMessage(userID));
 	}
 
 	@Override
@@ -49,9 +47,9 @@ class StorageProcessor extends UntypedActor
 	@Override
 	public void onReceive(final Object message) throws Exception
 	{
-		if (message instanceof CreateLookupDocumentMessage)
+		if (message instanceof LoadDocumentMetadataMessage)
 		{
-			processCreateLookupDocumentMessage((CreateLookupDocumentMessage) message);
+			processLoadDocumentMetadataMessage((LoadDocumentMetadataMessage) message);
 		}
 		else if (message instanceof ReceiveTimeout)
 		{
@@ -61,117 +59,22 @@ class StorageProcessor extends UntypedActor
 		{
 			sendDelayedMessage(message);
 		}
-		else if (message instanceof SerializedData)
+		else if (message instanceof PersistDocumentMessage)
 		{
-			processSerializedData((SerializedData) message);
+			processPersistDocument((PersistDocumentMessage) message);
 		}
-		else if (message instanceof PersistLookupDocumentMessage)
+		else if (message instanceof PersistDocumentMetadataMessage)
 		{
-			processLookupDocument((PersistLookupDocumentMessage) message);
+			processPersistDocumentMetadata((PersistDocumentMetadataMessage) message);
+		}
+		else if (message instanceof FetchDocumentMetadataMessage)
+		{
+			processFetchDocumentMetadata((FetchDocumentMetadataMessage) message);
 		}
 		else
 		{
 			unhandled(message);
 		}
-	}
-
-	private void processCreateLookupDocumentMessage(final CreateLookupDocumentMessage message)
-	{
-		try
-		{
-			//final Collection<DocumentMetadata> maybeCollection = storageController.getLookupController().getDocumentMetadataCollection(userID);
-			//if (maybeCollection != null && maybeCollection.size() > 0)
-			//{
-			//	documentMetadataCollection.set(maybeCollection);
-			//	isReady = true;
-			//
-			//	return;
-			//}
-
-			final String userLookupDocumentObject = storageController.getStorageDBController().getUserLookupDocument(userID);
-			if (userLookupDocumentObject != null)
-			{
-				documentMetadataCollection = gson.getDocumentMetadataCollection(userLookupDocumentObject);
-				//storageController.getLookupController().createDocument(userID, documentMetadataCollection);
-
-				if (documentMetadataCollection == null)
-				{
-					throw new RuntimeException("Lookup document for user " + userID + " is null! " + userLookupDocumentObject);
-				}
-			}
-
-			storageController.incrementStorageProcessorCreated();
-			isReady = true;
-		}
-		catch (Exception e)
-		{
-			log.error("Could not create lookup document for user {}: {}", userID, e.getMessage());
-
-			context().parent().tell(message, getSelf());
-		}
-	}
-
-	private void processReceivedTimeout()
-	{
-		isReady = false;
-		documentMetadataCollection.clear();
-		//storageController.getLookupController().destroyDocument(userID);
-		storageController.incrementStorageProcessorDestroyed();
-
-		context().parent().tell(new ProcessorIdleMessage(userID), self());
-	}
-
-	private void processSerializedData(final SerializedData serializedData)
-	{
-		try
-		{
-			storageController.getStorageDBController().storeDocument(serializedData.getKey(), serializedData.getDocument());
-		}
-		catch (Exception e)
-		{
-			log.error("Could not add {} for user {}: {}", serializedData.getKey(), userID, e.getMessage());
-
-			storageController.incrementDataRetries();
-			sendDelayedMessage(serializedData);
-
-			return;
-		}
-
-		final DocumentMetadata documentMetadata = new DocumentMetadata(serializedData);
-		documentMetadataCollection.add(documentMetadata);
-		//storageController.getLookupController().addSerializedData(userID, documentMetadata);
-		storageController.incrementDataPersisted();
-
-		if (!lookupDocumentInQueue)
-		{
-			lookupDocumentInQueue = true;
-
-			storageController.incrementQueueSize();
-			context().parent().tell(new PersistLookupDocumentMessage(userID), getSelf());
-		}
-	}
-
-	private void processLookupDocument(final PersistLookupDocumentMessage message)
-	{
-		lookupDocumentInQueue = false;
-
-		final String lookupDocument = gson.toJson(documentMetadataCollection);
-
-		try
-		{
-			storageController.getStorageDBController().storeLookupDocument(userID, lookupDocument);
-		}
-		catch (Exception e)
-		{
-			log.error("Could not set lookup document for user {}: {}", userID, e.getMessage());
-
-			storageController.incrementLookupRetries();
-			sendDelayedMessage(message);
-
-			return;
-		}
-
-		storageController.incrementLookupPersisted();
 	}
 
 	private void sendDelayedMessage(final Object message)
@@ -183,5 +86,107 @@ class StorageProcessor extends UntypedActor
 				context().system().dispatcher(),
 				self()
 		);
+	}
+
+	private void processLoadDocumentMetadataMessage(final LoadDocumentMetadataMessage message)
+	{
+		try
+		{
+			//final Collection<DocumentMetadata> maybeCollection = storageController.getStorageDocumentMetadataController().getDocumentMetadataCollection(userID);
+			//if (maybeCollection != null && maybeCollection.size() > 0)
+			//{
+			//	documentMetadataCollection.set(maybeCollection);
+			//	isReady = true;
+			//
+			//	return;
+			//}
+
+			final String documentMetadataJSON = storageController.getStorageDBController().getUserDocumentMetadata(userID);
+			if (documentMetadataJSON != null)
+			{
+				documentMetadataCollection = gson.getDocumentMetadataCollection(documentMetadataJSON);
+				//storageController.getStorageDocumentMetadataController().createDocument(userID, documentMetadataCollection);
+
+				if (documentMetadataCollection == null)
+				{
+					throw new RuntimeException("Document metadata for user " + userID + " is null! " + documentMetadataJSON);
+				}
+			}
+
+			storageController.incrementStorageProcessorCreated();
+			isReady = true;
+		}
+		catch (Exception e)
+		{
+			log.error("Could not create document metadata for user {}: {}", userID, e.getMessage());
+
+			context().parent().tell(message, getSelf());
+		}
+	}
+
+	private void processReceivedTimeout()
+	{
+		isReady = false;
+		documentMetadataCollection.clear();
+		//storageController.getStorageDocumentMetadataController().destroyDocument(userID);
+		storageController.incrementStorageProcessorDestroyed();
+
+		context().parent().tell(new StorageProcessorIdleMessage(userID), self());
+	}
+
+	private void processPersistDocument(final PersistDocumentMessage message)
+	{
+		try
+		{
+			storageController.getStorageDBController().storeDocument(message.getKey(), message.getDocument());
+		}
+		catch (Exception e)
+		{
+			log.error("Could not add {} for user {}: {}", message.getKey(), userID, e.getMessage());
+
+			storageController.incrementDataRetries();
+			sendDelayedMessage(message);
+
+			return;
+		}
+
+		final DocumentMetadata documentMetadata = new DocumentMetadata(message);
+		documentMetadataCollection.add(documentMetadata);
+		//storageController.getStorageDocumentMetadataController().addDocumentMetadata(userID, documentMetadata);
+		storageController.incrementDataPersisted();
+
+		if (!PeristDocumentMetadataMessageInQueue)
+		{
+			PeristDocumentMetadataMessageInQueue = true;
+
+			storageController.incrementQueueSize();
+			context().parent().tell(new PersistDocumentMetadataMessage(userID), getSelf());
+		}
+	}
+
+	private void processPersistDocumentMetadata(final PersistDocumentMetadataMessage message)
+	{
+		PeristDocumentMetadataMessageInQueue = false;
+
+		try
+		{
+			storageController.getStorageDBController().storeDocumentMetadata(userID, gson.toJson(documentMetadataCollection));
+		}
+		catch (Exception e)
+		{
+			log.error("Could not store document metadata for user {}: {}", userID, e.getMessage());
+
+			storageController.incrementMetadataRetries();
+			sendDelayedMessage(message);
+
+			return;
+		}
+
+		storageController.incrementMetadataPersisted();
+	}
+
+	private void processFetchDocumentMetadata(final FetchDocumentMetadataMessage message)
+	{
+		message.getCallback().setResult(gson.toJson(documentMetadataCollection));
 	}
 }

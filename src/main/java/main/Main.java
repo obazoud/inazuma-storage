@@ -8,9 +8,9 @@ import com.hazelcast.core.HazelcastInstance;
 import database.ConnectionManager;
 import jmx.JMXAgent;
 import model.DocumentMetadata;
-import model.DocumentMetadataStreamSerializer;
-import model.SerializedData;
-import model.SerializedDataStreamSerializer;
+import serialization.PersistDocumentMessageStreamSerializer;
+import storage.messages.PersistDocumentMessage;
+import serialization.DocumentMetadataStreamSerializer;
 import request.RequestController;
 import stats.StatisticManager;
 import storage.StorageController;
@@ -31,13 +31,13 @@ public class Main
 		final SerializerConfig documentMetadataConfig = new SerializerConfig();
 		documentMetadataConfig.setImplementation(new DocumentMetadataStreamSerializer()).setTypeClass(DocumentMetadata.class);
 
-		final SerializerConfig serializedDataConfig = new SerializerConfig();
-		serializedDataConfig.setImplementation(new SerializedDataStreamSerializer()).setTypeClass(SerializedData.class);
+		final SerializerConfig persistDocumentConfig = new SerializerConfig();
+		persistDocumentConfig.setImplementation(new PersistDocumentMessageStreamSerializer()).setTypeClass(PersistDocumentMessage.class);
 
 		final Config cfg = new Config();
 		cfg.getSerializationConfig()
 				.addSerializerConfig(documentMetadataConfig)
-				.addSerializerConfig(serializedDataConfig);
+				.addSerializerConfig(persistDocumentConfig);
 
 		final HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
 

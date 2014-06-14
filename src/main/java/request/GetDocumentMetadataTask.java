@@ -6,11 +6,11 @@ import main.Main;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Serializable
+class GetDocumentMetadataTask implements Callable<String>, PartitionAware, Serializable
 {
 	private final String userID;
 
-	public GetKeysFromLookupTask(final String userID)
+	public GetDocumentMetadataTask(final String userID)
 	{
 		this.userID = userID;
 	}
@@ -18,7 +18,7 @@ class GetKeysFromLookupTask implements Callable<String>, PartitionAware, Seriali
 	@Override
 	public String call() throws Exception
 	{
-		return Main.getStorageController().getDocumentKeysByUserID(userID);
+		return Main.getStorageController().getDocumentMetadataByUserID(userID);
 	}
 
 	@Override

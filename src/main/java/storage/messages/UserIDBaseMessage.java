@@ -1,10 +1,12 @@
 package storage.messages;
 
-public abstract class UserIDMessage
+import java.io.Serializable;
+
+public abstract class UserIDBaseMessage implements Serializable
 {
 	private final String userID;
 
-	public UserIDMessage(final String userID)
+	public UserIDBaseMessage(final String userID)
 	{
 		this.userID = userID;
 	}

@@ -1,6 +1,7 @@
 package model;
 
 import com.hazelcast.core.PartitionAware;
+import storage.messages.PersistDocumentMessage;
 
 import java.io.Serializable;
 
@@ -13,9 +14,9 @@ public class DocumentMetadata implements PartitionAware, Serializable
 	private final long created;
 	private boolean read;
 
-	public DocumentMetadata(final SerializedData serializedData)
+	public DocumentMetadata(final PersistDocumentMessage message)
 	{
-		this(serializedData.getUserID(), serializedData.getKey(), serializedData.getCreated(), false);
+		this(message.getUserID(), message.getKey(), message.getCreated(), false);
 	}
 
 	public DocumentMetadata(final String userID, final String key, final long created, final boolean read)

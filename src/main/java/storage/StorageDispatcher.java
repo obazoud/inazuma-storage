@@ -3,8 +3,8 @@ package storage;
 import akka.actor.ActorRef;
 import akka.actor.PoisonPill;
 import akka.actor.UntypedActor;
-import storage.messages.ProcessorIdleMessage;
-import storage.messages.UserIDMessage;
+import storage.messages.StorageProcessorIdleMessage;
+import storage.messages.UserIDBaseMessage;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -23,13 +23,13 @@ class StorageDispatcher extends UntypedActor
 	@Override
 	public void onReceive(Object message) throws Exception
 	{
-		if (message instanceof ProcessorIdleMessage)
+		if (message instanceof StorageProcessorIdleMessage)
 		{
-			dispatch((ProcessorIdleMessage) message);
+			dispatch((StorageProcessorIdleMessage) message);
 		}
-		else if (message instanceof UserIDMessage)
+		else if (message instanceof UserIDBaseMessage)
 		{
-			dispatch(((UserIDMessage) message).getUserID(), message);
+			dispatch(((UserIDBaseMessage) message).getUserID(), message);
 		}
 		else
 		{
@@ -42,7 +42,7 @@ class StorageDispatcher extends UntypedActor
 		findOrCreateProcessorFor(userID).tell(message, self());
 	}
 
-	private void dispatch(final ProcessorIdleMessage message)
+	private void dispatch(final StorageProcessorIdleMessage message)
 	{
 		storageProcessorByUserID.remove(message.getUserID());
 

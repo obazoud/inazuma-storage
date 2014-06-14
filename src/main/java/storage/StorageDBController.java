@@ -14,24 +14,24 @@ class StorageDBController
 		this.cb = cb;
 	}
 
-	public String getUserLookupDocument(final String userID)
+	public String getUserDocumentMetadata(final String userID)
 	{
-		return (String) cb.get(createLookupDocumentKey(userID));
+		return (String) cb.get(createDocumentMetadataKey(userID));
+	}
+
+	public void storeDocumentMetadata(final String userID, final String document) throws ExecutionException, InterruptedException
+	{
+		final OperationFuture<Boolean> future = cb.set(createDocumentMetadataKey(userID), 0, document);
+		future.get();
 	}
 
 	public void storeDocument(final String key, final String document) throws ExecutionException, InterruptedException
 	{
-		final OperationFuture<Boolean> dataFuture = cb.set(key, 0, document);
-		dataFuture.get();
+		final OperationFuture<Boolean> future = cb.set(key, 0, document);
+		future.get();
 	}
 
-	public void storeLookupDocument(final String userID, final String document) throws ExecutionException, InterruptedException
-	{
-		final OperationFuture<Boolean> lookupFuture = cb.set(createLookupDocumentKey(userID), 0, document);
-		lookupFuture.get();
-	}
-
-	private String createLookupDocumentKey(final String userID)
+	private String createDocumentMetadataKey(final String userID)
 	{
 		return "u-" + userID;
 	}

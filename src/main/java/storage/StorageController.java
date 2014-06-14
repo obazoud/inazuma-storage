@@ -4,12 +4,13 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.couchbase.client.CouchbaseClient;
 import com.hazelcast.core.HazelcastInstance;
-import model.SerializedData;
+import storage.messages.FetchDocumentMetadataMessage;
+import storage.messages.PersistDocumentMessage;
 import scala.concurrent.duration.Duration;
 import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
 import stats.StatisticManager;
-import storage.messages.PersistLookupDocumentMessage;
+import storage.callbacks.FetchDocumentMetadataCallback;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StorageController
 {
 	private final CouchbaseClient cb;
-	private final StorageLookupController storageLookupController;
+	private final StorageDocumentMetadataController storageDocumentMetadataController;
 	private final StorageDBController storageDBController;
 	private final ActorSystem actorSystem;
 	private final ActorRef storageDispatcher;
@@ -28,8 +29,8 @@ public class StorageController
 	private final BasicStatisticValue dataFetched = new BasicStatisticValue("StorageController", "dataFetched");
 	private final BasicStatisticValue dataDeleted = new BasicStatisticValue("StorageController", "dataDeleted");
 
-	private final BasicStatisticValue lookupRetries = new BasicStatisticValue("StorageController", "retriesLookup");
-	private final BasicStatisticValue lookupPersisted = new BasicStatisticValue("StorageController", "persistedLookup");
+	private final BasicStatisticValue metadataRetries = new BasicStatisticValue("StorageController", "retriesMetadata");
+	private final BasicStatisticValue metadataPersisted = new BasicStatisticValue("StorageController", "persistedMetadata");
 
 	private final BasicStatisticValue dataRetries = new BasicStatisticValue("StorageController", "retriesData");
 	private final BasicStatisticValue dataPersisted = new BasicStatisticValue("StorageController", "persistedData");
@@ -40,7 +41,7 @@ public class StorageController
 	public StorageController(final HazelcastInstance hz, final CouchbaseClient cb)
 	{
 		this.cb = cb;
-		this.storageLookupController = new StorageLookupController(hz);
+		this.storageDocumentMetadataController = new StorageDocumentMetadataController(hz);
 		this.actorSystem = ActorSystem.create("MySystem");
 		this.storageDispatcher = StorageActorFactory.createStorageDispatcher(actorSystem, this);
 		this.storageDBController = new StorageDBController(cb);
@@ -49,18 +50,19 @@ public class StorageController
 		StatisticManager.getInstance().registerStatisticValue(queueSize);
 	}
 
-	public String getDocumentKeysByUserID(final String userID)
+	public String getDocumentMetadataByUserID(final String userID)
 	{
-		// TODO implement via Akka message
-		//return storageLookupController.getDocumentKeysByUserID(userID);
-		return null;
+		final FetchDocumentMetadataCallback callback = new FetchDocumentMetadataCallback();
+		storageDispatcher.tell(new FetchDocumentMetadataMessage(userID, callback), ActorRef.noSender());
+
+		return callback.getResult();
 	}
 
-	public void addData(final SerializedData serializedData)
+	public void addData(final PersistDocumentMessage message)
 	{
 		queueSize.incrementAndGet();
 		dataAdded.increment();
-		storageDispatcher.tell(serializedData, ActorRef.noSender());
+		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
 	public String getData(final String key)
@@ -109,9 +111,9 @@ public class StorageController
 		actorSystem.awaitTermination(Duration.create(60, TimeUnit.MINUTES));
 	}
 
-	StorageLookupController getLookupController()
+	StorageDocumentMetadataController getStorageDocumentMetadataController()
 	{
-		return storageLookupController;
+		return storageDocumentMetadataController;
 	}
 
 	StorageDBController getStorageDBController()
@@ -124,15 +126,15 @@ public class StorageController
 		queueSize.incrementAndGet();
 	}
 
-	void incrementLookupRetries()
+	void incrementMetadataRetries()
 	{
-		lookupRetries.increment();
+		metadataRetries.increment();
 	}
 
-	void incrementLookupPersisted()
+	void incrementMetadataPersisted()
 	{
 		queueSize.decrementAndGet();
-		lookupPersisted.increment();
+		metadataPersisted.increment();
 	}
 
 	void incrementDataRetries()

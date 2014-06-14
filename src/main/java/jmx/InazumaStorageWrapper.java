@@ -2,7 +2,7 @@ package jmx;
 
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import main.Main;
-import model.SerializedData;
+import storage.messages.PersistDocumentMessage;
 import util.NamedThreadFactory;
 
 import java.util.Random;
@@ -25,15 +25,14 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	@Override
 	public void insertSingleDocumentForUser(final int userID)
 	{
-		final SerializedData serializedData = createSerializedDataForUser(userID);
-		Main.getRequestController().addData(serializedData);
+		final PersistDocumentMessage message = createDocumentForUser(userID);
+		Main.getRequestController().addData(message);
 	}
 
 	@Override
 	public void insertSingleDocument()
 	{
-		final SerializedData serializedData = createSerializedDataForUser(createRandomUserID());
-		Main.getRequestController().addData(serializedData);
+		insertSingleDocumentForUser(createRandomUserID());
 	}
 
 	@Override
@@ -63,15 +62,15 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	}
 
 	@Override
-	public String returnRandomKeys()
+	public String returnRandomDocumentMetadata()
 	{
-		return returnKeys(String.valueOf(createRandomUserID()));
+		return returnDocumentMetadata(String.valueOf(createRandomUserID()));
 	}
 
 	@Override
-	public String returnKeys(final String userID)
+	public String returnDocumentMetadata(final String userID)
 	{
-		return Main.getRequestController().getKeys(userID);
+		return Main.getRequestController().getDocumentMetadata(userID);
 	}
 
 	@Override
@@ -85,9 +84,9 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 		return generator.nextInt(MAX_USER) + 1;
 	}
 
-	private SerializedData createSerializedDataForUser(final int userID)
+	private PersistDocumentMessage createDocumentForUser(final int userID)
 	{
 		final long created = (System.currentTimeMillis() / 1000) - generator.nextInt(86400);
-		return new SerializedData(String.valueOf(userID), UUID.randomUUID().toString(), MAILS.get(userID), created);
+		return new PersistDocumentMessage(String.valueOf(userID), UUID.randomUUID().toString(), MAILS.get(userID), created);
 	}
 }

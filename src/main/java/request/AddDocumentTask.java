@@ -2,15 +2,15 @@ package request;
 
 import com.hazelcast.core.PartitionAware;
 import main.Main;
-import model.SerializedData;
+import storage.messages.PersistDocumentMessage;
 
 import java.io.Serializable;
 
-class AddDataTask implements Runnable, PartitionAware, Serializable
+class AddDocumentTask implements Runnable, PartitionAware, Serializable
 {
-	private final SerializedData document;
+	private final PersistDocumentMessage document;
 
-	public AddDataTask(final SerializedData document)
+	public AddDocumentTask(final PersistDocumentMessage document)
 	{
 		this.document = document;
 	}

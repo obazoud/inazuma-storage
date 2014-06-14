@@ -1,7 +1,7 @@
 package request;
 
 import main.Main;
-import model.SerializedData;
+import storage.messages.PersistDocumentMessage;
 import stats.BasicStatisticValue;
 
 import java.util.concurrent.ExecutorService;
@@ -19,11 +19,11 @@ public class RequestController
 		this.es = es;
 	}
 
-	public String getKeys(final String userID)
+	public String getDocumentMetadata(final String userID)
 	{
 		try
 		{
-			final GetKeysFromLookupTask task = new GetKeysFromLookupTask(userID);
+			final GetDocumentMetadataTask task = new GetDocumentMetadataTask(userID);
 			Future<String> future = es.submit(task);
 			return future.get();
 		}
@@ -34,10 +34,10 @@ public class RequestController
 		return null;
 	}
 
-	public void addData(final SerializedData serializedData)
+	public void addData(final PersistDocumentMessage message)
 	{
 		dataAddedRequest.increment();
-		final AddDataTask task = new AddDataTask(serializedData);
+		final AddDocumentTask task = new AddDocumentTask(message);
 		es.submit(task);
 	}
 

@@ -1,11 +1,10 @@
-package model;
+package storage.messages;
 
 import com.hazelcast.core.PartitionAware;
-import storage.messages.UserIDMessage;
 
 import java.io.Serializable;
 
-public class SerializedData extends UserIDMessage implements PartitionAware, Serializable
+public class PersistDocumentMessage extends UserIDBaseMessage implements PartitionAware, Serializable
 {
 	public static final int ID = 2;
 
@@ -13,7 +12,7 @@ public class SerializedData extends UserIDMessage implements PartitionAware, Ser
 	private final String document;
 	private final long created;
 
-	public SerializedData(final String userID, final String key, final String document, final long created)
+	public PersistDocumentMessage(final String userID, final String key, final String document, final long created)
 	{
 		super(userID);
 		this.key = key;

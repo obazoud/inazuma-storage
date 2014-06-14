@@ -11,9 +11,9 @@ public interface InazumaStorageWrapperMBean
 
 	public void insertMultipleDocuments(final int count);
 
-	public String returnRandomKeys();
+	public String returnRandomDocumentMetadata();
 
-	public String returnKeys(final String userID);
+	public String returnDocumentMetadata(final String userID);
 
 	public String returnData(final String key);
 }
