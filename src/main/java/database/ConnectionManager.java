@@ -1,6 +1,9 @@
 package database;
 
 import com.couchbase.client.CouchbaseClient;
+import com.couchbase.client.CouchbaseConnectionFactory;
+import com.couchbase.client.CouchbaseConnectionFactoryBuilder;
+import net.spy.memcached.ConnectionFactoryBuilder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,16 +17,21 @@ public class ConnectionManager
 
 	static
 	{
-		// Set the URIs and get a client
-		final List<URI> uris = new LinkedList<>();
+		final CouchbaseConnectionFactoryBuilder builder = new CouchbaseConnectionFactoryBuilder();
+		builder.setProtocol(ConnectionFactoryBuilder.Protocol.BINARY);
+		builder.setOpTimeout(10000);
+		builder.setOpQueueMaxBlockTime(5000);
+		builder.setMaxReconnectDelay(1500);
+		builder.setTimeoutExceptionThreshold(5000);
 
-		// Connect to localhost or to the appropriate URI(s)
+		final List<URI> uris = new LinkedList<>();
 		uris.add(URI.create("http://127.0.0.1:8091/pools"));
 
 		CouchbaseClient tmpClient = null;
 		try
 		{
-			tmpClient = new CouchbaseClient(uris, "default", "");
+			final CouchbaseConnectionFactory connectionFactory = builder.buildCouchbaseConnection(uris, "default", "");
+			tmpClient = new CouchbaseClient(connectionFactory);
 		}
 		catch (IOException e)
 		{
