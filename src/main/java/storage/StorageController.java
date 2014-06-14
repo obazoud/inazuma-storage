@@ -25,15 +25,15 @@ public class StorageController
 
 	private final AtomicLong queueSize = new AtomicLong(0);
 
-	private final BasicStatisticValue dataAdded = new BasicStatisticValue("StorageController", "dataAdded");
-	private final BasicStatisticValue dataFetched = new BasicStatisticValue("StorageController", "dataFetched");
-	private final BasicStatisticValue dataDeleted = new BasicStatisticValue("StorageController", "dataDeleted");
+	private final BasicStatisticValue documentAdded = new BasicStatisticValue("StorageController", "documentAdded");
+	private final BasicStatisticValue documentFetched = new BasicStatisticValue("StorageController", "documentFetched");
+	private final BasicStatisticValue documentDeleted = new BasicStatisticValue("StorageController", "documentDeleted");
 
 	private final BasicStatisticValue metadataRetries = new BasicStatisticValue("StorageController", "retriesMetadata");
 	private final BasicStatisticValue metadataPersisted = new BasicStatisticValue("StorageController", "persistedMetadata");
 
-	private final BasicStatisticValue dataRetries = new BasicStatisticValue("StorageController", "retriesData");
-	private final BasicStatisticValue dataPersisted = new BasicStatisticValue("StorageController", "persistedData");
+	private final BasicStatisticValue documentRetries = new BasicStatisticValue("StorageController", "retriesDocument");
+	private final BasicStatisticValue documentPersisted = new BasicStatisticValue("StorageController", "persistedDocument");
 
 	private final BasicStatisticValue storageProcessorCreated = new BasicStatisticValue("StorageController", "processorsCreated");
 	private final BasicStatisticValue storageProcessorDestroyed = new BasicStatisticValue("StorageController", "processorsDestroyed");
@@ -61,7 +61,7 @@ public class StorageController
 	public void addData(final PersistDocumentMessage message)
 	{
 		queueSize.incrementAndGet();
-		dataAdded.increment();
+		documentAdded.increment();
 		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
@@ -69,7 +69,7 @@ public class StorageController
 	{
 		try
 		{
-			dataFetched.increment();
+			documentFetched.increment();
 
 			return String.valueOf(cb.get(key));
 		}
@@ -86,7 +86,7 @@ public class StorageController
 		// TODO add new message to delete document from database
 		//storageDispatcher.tell(new DeleteDocument(userID, key), ActorRef.noSender());
 
-		dataDeleted.increment();
+		documentDeleted.increment();
 	}
 
 	public long getQueueSize()
@@ -139,13 +139,13 @@ public class StorageController
 
 	void incrementDataRetries()
 	{
-		dataRetries.increment();
+		documentRetries.increment();
 	}
 
 	void incrementDataPersisted()
 	{
 		queueSize.decrementAndGet();
-		dataPersisted.increment();
+		documentPersisted.increment();
 	}
 
 	void incrementStorageProcessorCreated()
