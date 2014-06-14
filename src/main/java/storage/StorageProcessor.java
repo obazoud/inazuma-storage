@@ -4,9 +4,9 @@ import akka.actor.ReceiveTimeout;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import serialization.GsonController;
 import model.DocumentMetadata;
 import scala.concurrent.duration.Duration;
+import serialization.GsonController;
 import storage.messages.*;
 
 import java.util.ArrayList;
@@ -46,29 +46,37 @@ class StorageProcessor extends UntypedActor
 	@Override
 	public void onReceive(final Object message) throws Exception
 	{
-		if (message instanceof LoadDocumentMetadataMessage)
-		{
-			processLoadDocumentMetadataMessage((LoadDocumentMetadataMessage) message);
-		}
-		else if (message instanceof ReceiveTimeout)
+		if (message instanceof ReceiveTimeout)
 		{
 			processReceivedTimeout();
+			return;
+		}
+		else if (message instanceof LoadDocumentMetadataMessage)
+		{
+			processLoadDocumentMetadataMessage((LoadDocumentMetadataMessage) message);
+			return;
 		}
 		else if (!isReady)
 		{
 			sendDelayedMessage(message);
+			return;
 		}
-		else if (message instanceof PersistDocumentMessage)
-		{
-			processPersistDocument((PersistDocumentMessage) message);
-		}
-		else if (message instanceof PersistDocumentMetadataMessage)
+
+		if (message instanceof PersistDocumentMetadataMessage)
 		{
 			processPersistDocumentMetadata((PersistDocumentMetadataMessage) message);
 		}
 		else if (message instanceof FetchDocumentMetadataMessage)
 		{
 			processFetchDocumentMetadata((FetchDocumentMetadataMessage) message);
+		}
+		else if (message instanceof PersistDocumentMessage)
+		{
+			processPersistDocument((PersistDocumentMessage) message);
+		}
+		else if (message instanceof DeleteDocumentMessage)
+		{
+			processDeleteDocument((DeleteDocumentMessage) message);
 		}
 		else
 		{
@@ -85,6 +93,16 @@ class StorageProcessor extends UntypedActor
 				context().system().dispatcher(),
 				self()
 		);
+	}
+
+	private void processReceivedTimeout()
+	{
+		isReady = false;
+		documentMetadataCollection.clear();
+		//storageController.getStorageDocumentMetadataController().destroyDocument(userID);
+		storageController.incrementStorageProcessorDestroyed();
+
+		context().parent().tell(new StorageProcessorIdleMessage(userID), self());
 	}
 
 	private void processLoadDocumentMetadataMessage(final LoadDocumentMetadataMessage message)
@@ -123,14 +141,30 @@ class StorageProcessor extends UntypedActor
 		}
 	}
 
-	private void processReceivedTimeout()
+	private void processPersistDocumentMetadata(final PersistDocumentMetadataMessage message)
 	{
-		isReady = false;
-		documentMetadataCollection.clear();
-		//storageController.getStorageDocumentMetadataController().destroyDocument(userID);
-		storageController.incrementStorageProcessorDestroyed();
+		persistDocumentMetadataMessageInQueue = false;
 
-		context().parent().tell(new StorageProcessorIdleMessage(userID), self());
+		try
+		{
+			storageController.getStorageDBController().storeDocumentMetadata(userID, gson.toJson(documentMetadataCollection));
+		}
+		catch (Exception e)
+		{
+			log.error("Could not store document metadata for user {}: {}", userID, e.getMessage());
+
+			storageController.incrementMetadataRetries();
+			sendDelayedMessage(message);
+
+			return;
+		}
+
+		storageController.incrementMetadataPersisted();
+	}
+
+	private void processFetchDocumentMetadata(final FetchDocumentMetadataMessage message)
+	{
+		message.getCallback().setResult(gson.toJson(documentMetadataCollection));
 	}
 
 	private void processPersistDocument(final PersistDocumentMessage message)
@@ -163,29 +197,22 @@ class StorageProcessor extends UntypedActor
 		}
 	}
 
-	private void processPersistDocumentMetadata(final PersistDocumentMetadataMessage message)
+	private void processDeleteDocument(final DeleteDocumentMessage message)
 	{
-		persistDocumentMetadataMessageInQueue = false;
-
 		try
 		{
-			storageController.getStorageDBController().storeDocumentMetadata(userID, gson.toJson(documentMetadataCollection));
+			storageController.getStorageDBController().deleteDocument(message.getKey());
 		}
 		catch (Exception e)
 		{
-			log.error("Could not store document metadata for user {}: {}", userID, e.getMessage());
+			log.error("Could not delete document {} for user {}: {}", message.getKey(), userID, e.getMessage());
 
-			storageController.incrementMetadataRetries();
+			storageController.incrementDataRetries();
 			sendDelayedMessage(message);
 
 			return;
 		}
 
-		storageController.incrementMetadataPersisted();
-	}
-
-	private void processFetchDocumentMetadata(final FetchDocumentMetadataMessage message)
-	{
-		message.getCallback().setResult(gson.toJson(documentMetadataCollection));
+		storageController.incrementDataDeleted();
 	}
 }

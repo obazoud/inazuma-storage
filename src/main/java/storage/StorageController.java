@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.couchbase.client.CouchbaseClient;
 import com.hazelcast.core.HazelcastInstance;
+import storage.messages.DeleteDocumentMessage;
 import storage.messages.FetchDocumentMetadataMessage;
 import storage.messages.PersistDocumentMessage;
 import scala.concurrent.duration.Duration;
@@ -83,10 +84,7 @@ public class StorageController
 
 	public void deleteDocument(final String userID, final String key)
 	{
-		// TODO add new message to delete document from database
-		//storageDispatcher.tell(new DeleteDocumentMessage(userID, key), ActorRef.noSender());
-
-		documentDeleted.increment();
+		storageDispatcher.tell(new DeleteDocumentMessage(userID, key), ActorRef.noSender());
 	}
 
 	public long getQueueSize()
@@ -148,6 +146,10 @@ public class StorageController
 		documentPersisted.increment();
 	}
 
+	public void incrementDataDeleted()
+	{
+		documentDeleted.increment();
+	}
 	void incrementStorageProcessorCreated()
 	{
 		storageProcessorCreated.increment();
