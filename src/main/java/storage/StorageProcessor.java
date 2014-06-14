@@ -6,9 +6,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import gson.GsonWrapper;
 import model.DocumentMetadata;
-import storage.messages.*;
-import storage.messages.PersistDocumentMessage;
 import scala.concurrent.duration.Duration;
+import storage.messages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +25,7 @@ class StorageProcessor extends UntypedActor
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
 	private boolean isReady = false;
-	private boolean PeristDocumentMetadataMessageInQueue = false;
+	private boolean persistDocumentMetadataMessageInQueue = false;
 	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
 
 	public StorageProcessor(final StorageController storageController, final String userID)
@@ -155,9 +154,9 @@ class StorageProcessor extends UntypedActor
 		//storageController.getStorageDocumentMetadataController().addDocumentMetadata(userID, documentMetadata);
 		storageController.incrementDataPersisted();
 
-		if (!PeristDocumentMetadataMessageInQueue)
+		if (!persistDocumentMetadataMessageInQueue)
 		{
-			PeristDocumentMetadataMessageInQueue = true;
+			persistDocumentMetadataMessageInQueue = true;
 
 			storageController.incrementQueueSize();
 			context().parent().tell(new PersistDocumentMetadataMessage(userID), getSelf());
@@ -166,7 +165,7 @@ class StorageProcessor extends UntypedActor
 
 	private void processPersistDocumentMetadata(final PersistDocumentMetadataMessage message)
 	{
-		PeristDocumentMetadataMessageInQueue = false;
+		persistDocumentMetadataMessageInQueue = false;
 
 		try
 		{

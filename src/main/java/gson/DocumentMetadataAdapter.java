@@ -5,7 +5,7 @@ import model.DocumentMetadata;
 
 import java.lang.reflect.Type;
 
-public class DocumentMetadataAdapter implements JsonSerializer<DocumentMetadata>, JsonDeserializer<DocumentMetadata>
+class DocumentMetadataAdapter implements JsonSerializer<DocumentMetadata>, JsonDeserializer<DocumentMetadata>
 {
 	private final String userID;
 
