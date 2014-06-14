@@ -1,29 +1,24 @@
 package model;
 
 import com.hazelcast.core.PartitionAware;
+import storage.messages.UserIDMessage;
 
 import java.io.Serializable;
 
-public class SerializedData implements PartitionAware, Serializable
+public class SerializedData extends UserIDMessage implements PartitionAware, Serializable
 {
 	public static final int ID = 2;
 
-	private final String userID;
 	private final String key;
 	private final String document;
 	private final long created;
 
 	public SerializedData(final String userID, final String key, final String document, final long created)
 	{
-		this.userID = userID;
+		super(userID);
 		this.key = key;
 		this.document = document;
 		this.created = created;
-	}
-
-	public String getUserID()
-	{
-		return userID;
 	}
 
 	public String getKey()
@@ -44,6 +39,6 @@ public class SerializedData implements PartitionAware, Serializable
 	@Override
 	public Object getPartitionKey()
 	{
-		return userID;
+		return getUserID();
 	}
 }

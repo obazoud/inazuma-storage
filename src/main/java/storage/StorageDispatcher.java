@@ -3,10 +3,8 @@ package storage;
 import akka.actor.ActorRef;
 import akka.actor.PoisonPill;
 import akka.actor.UntypedActor;
-import model.SerializedData;
-import storage.messages.CreateLookupDocumentMessage;
-import storage.messages.PersistLookupDocumentMessage;
 import storage.messages.ProcessorIdleMessage;
+import storage.messages.UserIDMessage;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,21 +23,13 @@ class StorageDispatcher extends UntypedActor
 	@Override
 	public void onReceive(Object message) throws Exception
 	{
-		if (message instanceof SerializedData)
-		{
-			dispatch(((SerializedData) message));
-		}
-		else if (message instanceof PersistLookupDocumentMessage)
-		{
-			dispatch((PersistLookupDocumentMessage) message);
-		}
-		else if (message instanceof CreateLookupDocumentMessage)
-		{
-			dispatch((CreateLookupDocumentMessage) message);
-		}
-		else if (message instanceof ProcessorIdleMessage)
+		if (message instanceof ProcessorIdleMessage)
 		{
 			dispatch((ProcessorIdleMessage) message);
+		}
+		else if (message instanceof UserIDMessage)
+		{
+			dispatch(((UserIDMessage) message).getUserID(), message);
 		}
 		else
 		{
@@ -47,19 +37,9 @@ class StorageDispatcher extends UntypedActor
 		}
 	}
 
-	private void dispatch(final SerializedData message)
+	private void dispatch(final String userID, final Object message)
 	{
-		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
-	}
-
-	private void dispatch(final PersistLookupDocumentMessage message)
-	{
-		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
-	}
-
-	private void dispatch(final CreateLookupDocumentMessage message)
-	{
-		findOrCreateProcessorFor(message.getUserID()).tell(message, self());
+		findOrCreateProcessorFor(userID).tell(message, self());
 	}
 
 	private void dispatch(final ProcessorIdleMessage message)
