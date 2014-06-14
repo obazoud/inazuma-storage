@@ -23,7 +23,6 @@ class StorageProcessor extends UntypedActor
 
 	private final StorageController storageController;
 	private final String userID;
-
 	private final GsonWrapper gson;
 
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
@@ -36,7 +35,6 @@ class StorageProcessor extends UntypedActor
 	{
 		this.storageController = storageController;
 		this.userID = userID;
-
 		this.gson = new GsonWrapper(userID);
 
 		processCreateLookupDocumentMessage(new CreateLookupDocumentMessage(userID));
@@ -49,7 +47,7 @@ class StorageProcessor extends UntypedActor
 	}
 
 	@Override
-	public void onReceive(Object message) throws Exception
+	public void onReceive(final Object message) throws Exception
 	{
 		if (message instanceof CreateLookupDocumentMessage)
 		{
@@ -57,22 +55,11 @@ class StorageProcessor extends UntypedActor
 		}
 		else if (message instanceof ReceiveTimeout)
 		{
-			isReady = false;
-			documentMetadataCollection.clear();
-			//storageController.getLookupController().destroyDocument(userID);
-			storageController.incrementStorageProcessorDestroyed();
-
-			context().parent().tell(new ProcessorIdleMessage(userID), self());
+			processReceivedTimeout();
 		}
 		else if (!isReady)
 		{
-			context().system().scheduler().scheduleOnce(
-					Duration.create(DELAY, DELAY_UNIT),
-					context().parent(),
-					message,
-					context().system().dispatcher(),
-					self()
-			);
+			sendDelayedMessage(message);
 		}
 		else if (message instanceof SerializedData)
 		{
@@ -86,71 +73,6 @@ class StorageProcessor extends UntypedActor
 		{
 			unhandled(message);
 		}
-	}
-
-	private void processSerializedData(final SerializedData serializedData)
-	{
-		try
-		{
-			storageController.getStorageDBController().storeDocument(serializedData.getKey(), serializedData.getDocument());
-		}
-		catch (Exception e)
-		{
-			log.error("Could not add {} for user {}: {}", serializedData.getKey(), userID, e.getMessage());
-
-			storageController.incrementDataRetries();
-			context().system().scheduler().scheduleOnce(
-					Duration.create(DELAY, DELAY_UNIT),
-					context().parent(),
-					serializedData,
-					context().system().dispatcher(),
-					self()
-			);
-
-			return;
-		}
-
-		final DocumentMetadata documentMetadata = new DocumentMetadata(serializedData);
-		documentMetadataCollection.add(documentMetadata);
-		//storageController.getLookupController().addSerializedData(userID, documentMetadata);
-		storageController.incrementDataPersisted();
-
-		if (!lookupDocumentInQueue)
-		{
-			lookupDocumentInQueue = true;
-
-			storageController.incrementQueueSize();
-			context().parent().tell(new PersistLookupDocumentMessage(userID), getSelf());
-		}
-	}
-
-	private void processLookupDocument(final PersistLookupDocumentMessage message)
-	{
-		lookupDocumentInQueue = false;
-
-		final String lookupDocument = gson.toJson(documentMetadataCollection);
-
-		try
-		{
-			storageController.getStorageDBController().storeLookupDocument(userID, lookupDocument);
-		}
-		catch (Exception e)
-		{
-			log.error("Could not set lookup document for user {}: {}", userID, e.getMessage());
-
-			storageController.incrementLookupRetries();
-			context().system().scheduler().scheduleOnce(
-					Duration.create(DELAY, DELAY_UNIT),
-					context().parent(),
-					message,
-					context().system().dispatcher(),
-					self()
-			);
-
-			return;
-		}
-
-		storageController.incrementLookupPersisted();
 	}
 
 	private void processCreateLookupDocumentMessage(final CreateLookupDocumentMessage message)
@@ -187,5 +109,79 @@ class StorageProcessor extends UntypedActor
 
 			context().parent().tell(message, getSelf());
 		}
+	}
+
+	private void processReceivedTimeout()
+	{
+		isReady = false;
+		documentMetadataCollection.clear();
+		//storageController.getLookupController().destroyDocument(userID);
+		storageController.incrementStorageProcessorDestroyed();
+
+		context().parent().tell(new ProcessorIdleMessage(userID), self());
+	}
+
+	private void processSerializedData(final SerializedData serializedData)
+	{
+		try
+		{
+			storageController.getStorageDBController().storeDocument(serializedData.getKey(), serializedData.getDocument());
+		}
+		catch (Exception e)
+		{
+			log.error("Could not add {} for user {}: {}", serializedData.getKey(), userID, e.getMessage());
+
+			storageController.incrementDataRetries();
+			sendDelayedMessage(serializedData);
+
+			return;
+		}
+
+		final DocumentMetadata documentMetadata = new DocumentMetadata(serializedData);
+		documentMetadataCollection.add(documentMetadata);
+		//storageController.getLookupController().addSerializedData(userID, documentMetadata);
+		storageController.incrementDataPersisted();
+
+		if (!lookupDocumentInQueue)
+		{
+			lookupDocumentInQueue = true;
+
+			storageController.incrementQueueSize();
+			context().parent().tell(new PersistLookupDocumentMessage(userID), getSelf());
+		}
+	}
+
+	private void processLookupDocument(final PersistLookupDocumentMessage message)
+	{
+		lookupDocumentInQueue = false;
+
+		final String lookupDocument = gson.toJson(documentMetadataCollection);
+
+		try
+		{
+			storageController.getStorageDBController().storeLookupDocument(userID, lookupDocument);
+		}
+		catch (Exception e)
+		{
+			log.error("Could not set lookup document for user {}: {}", userID, e.getMessage());
+
+			storageController.incrementLookupRetries();
+			sendDelayedMessage(message);
+
+			return;
+		}
+
+		storageController.incrementLookupPersisted();
+	}
+
+	private void sendDelayedMessage(final Object message)
+	{
+		context().system().scheduler().scheduleOnce(
+				Duration.create(DELAY, DELAY_UNIT),
+				context().parent(),
+				message,
+				context().system().dispatcher(),
+				self()
+		);
 	}
 }
