@@ -59,7 +59,13 @@ class StorageProcessor extends UntypedActor
 		}
 		else if (!isReady)
 		{
-			context().parent().tell(message, self());
+			context().system().scheduler().scheduleOnce(
+					Duration.create(50, TimeUnit.MILLISECONDS),
+					context().parent(),
+					message,
+					context().system().dispatcher(),
+					self()
+			);
 		}
 		else if (message instanceof SerializedData)
 		{
@@ -91,7 +97,13 @@ class StorageProcessor extends UntypedActor
 			serializedData.setLastException(e);
 
 			storageController.incrementDataRetries();
-			context().parent().tell(serializedData, getSelf());
+			context().system().scheduler().scheduleOnce(
+					Duration.create(50, TimeUnit.MILLISECONDS),
+					context().parent(),
+					serializedData,
+					context().system().dispatcher(),
+					self()
+			);
 
 			return;
 		}
@@ -124,7 +136,13 @@ class StorageProcessor extends UntypedActor
 			log.error("Could not set lookup document for user {}: {}", userID, e.getMessage());
 
 			storageController.incrementLookupRetries();
-			context().parent().tell(message, getSelf());
+			context().system().scheduler().scheduleOnce(
+					Duration.create(50, TimeUnit.MILLISECONDS),
+					context().parent(),
+					message,
+					context().system().dispatcher(),
+					self()
+			);
 
 			return;
 		}
