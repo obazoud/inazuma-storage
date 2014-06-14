@@ -1,4 +1,4 @@
-package gson;
+package serialization;
 
 import com.google.gson.*;
 import model.DocumentMetadata;

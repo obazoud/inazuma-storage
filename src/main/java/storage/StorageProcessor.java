@@ -4,7 +4,7 @@ import akka.actor.ReceiveTimeout;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import gson.GsonWrapper;
+import serialization.GsonController;
 import model.DocumentMetadata;
 import scala.concurrent.duration.Duration;
 import storage.messages.*;
@@ -20,7 +20,7 @@ class StorageProcessor extends UntypedActor
 
 	private final StorageController storageController;
 	private final String userID;
-	private final GsonWrapper gson;
+	private final GsonController gson;
 
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
@@ -32,7 +32,7 @@ class StorageProcessor extends UntypedActor
 	{
 		this.storageController = storageController;
 		this.userID = userID;
-		this.gson = new GsonWrapper(userID);
+		this.gson = new GsonController(userID);
 
 		processLoadDocumentMetadataMessage(new LoadDocumentMetadataMessage(userID));
 	}

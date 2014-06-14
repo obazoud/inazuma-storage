@@ -1,4 +1,4 @@
-package gson;
+package serialization;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,7 +8,7 @@ import model.DocumentMetadata;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-public class GsonWrapper
+public class GsonController
 {
 	private static final Type typeOfCollection;
 
@@ -22,7 +22,7 @@ public class GsonWrapper
 		typeOfCollection = typeToken.getType();
 	}
 
-	public GsonWrapper(final String userID)
+	public GsonController(final String userID)
 	{
 		final GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(DocumentMetadata.class, new DocumentMetadataAdapter(userID));
