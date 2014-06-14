@@ -31,6 +31,11 @@ class StorageDBController
 		future.get();
 	}
 
+	public String getDocument(final String key)
+	{
+		return (String) cb.get(key);
+	}
+
 	public void deleteDocument(final String key) throws ExecutionException, InterruptedException
 	{
 		final OperationFuture<Boolean> future = cb.delete(key);

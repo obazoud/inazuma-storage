@@ -7,8 +7,10 @@ import scala.concurrent.duration.Duration;
 import stats.BasicStatisticValue;
 import stats.CustomStatisticValue;
 import stats.StatisticManager;
+import storage.callbacks.FetchDocumentCallback;
 import storage.callbacks.FetchDocumentMetadataCallback;
 import storage.messages.DeleteDocumentMessage;
+import storage.messages.FetchDocumentMessage;
 import storage.messages.FetchDocumentMetadataMessage;
 import storage.messages.PersistDocumentMessage;
 
@@ -17,7 +19,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StorageController
 {
-	private final CouchbaseClient cb;
 	private final StorageDBController storageDBController;
 	private final ActorSystem actorSystem;
 	private final ActorRef storageDispatcher;
@@ -39,7 +40,6 @@ public class StorageController
 
 	public StorageController(final CouchbaseClient cb)
 	{
-		this.cb = cb;
 		this.actorSystem = ActorSystem.create("InazumaStorage");
 		this.storageDispatcher = StorageActorFactory.createStorageDispatcher(actorSystem, this);
 		this.storageDBController = new StorageDBController(cb);
@@ -63,24 +63,18 @@ public class StorageController
 		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
-	public String getDocument(final String key)
+	public String getDocument(final String userID, final String key)
 	{
-		try
-		{
-			documentFetched.increment();
+		queueSize.incrementAndGet();
+		final FetchDocumentCallback callback = new FetchDocumentCallback();
+		storageDispatcher.tell(new FetchDocumentMessage(userID, key, callback), ActorRef.noSender());
 
-			return String.valueOf(cb.get(key));
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-		return null;
+		return callback.getResult();
 	}
 
 	public void deleteDocument(final DeleteDocumentMessage message)
 	{
+		queueSize.incrementAndGet();
 		storageDispatcher.tell(message, ActorRef.noSender());
 	}
 
@@ -127,19 +121,26 @@ public class StorageController
 		metadataPersisted.increment();
 	}
 
-	void incrementDataRetries()
+	void incrementDocumentRetries()
 	{
 		documentRetries.increment();
 	}
 
-	void incrementDataPersisted()
+	void incrementDocumentPersisted()
 	{
 		queueSize.decrementAndGet();
 		documentPersisted.increment();
 	}
 
+	void incrementDocumentFetched()
+	{
+		queueSize.decrementAndGet();
+		documentFetched.increment();
+	}
+
 	public void incrementDataDeleted()
 	{
+		queueSize.decrementAndGet();
 		documentDeleted.increment();
 	}
 

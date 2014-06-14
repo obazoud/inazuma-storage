@@ -75,9 +75,9 @@ public class InazumaStorageWrapper implements InazumaStorageWrapperMBean
 	}
 
 	@Override
-	public String returnDocument(final String key)
+	public String returnDocument(final String userID, final String key)
 	{
-		return Main.getRequestController().getDocument(key);
+		return Main.getRequestController().getDocument(userID, key);
 	}
 
 	@Override

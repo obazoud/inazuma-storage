@@ -1,10 +1,10 @@
 package request;
 
-import main.Main;
+import stats.BasicStatisticValue;
 import storage.messages.DeleteDocumentMessage;
 import storage.messages.PersistDocumentMessage;
-import stats.BasicStatisticValue;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -43,10 +43,22 @@ public class RequestController
 		es.submit(task);
 	}
 
-	public String getDocument(final String key)
+	public String getDocument(final String userID, final String key)
 	{
 		documentFetchedRequest.increment();
-		return Main.getStorageController().getDocument(key);
+		final GetDocumentTask task = new GetDocumentTask(userID, key);
+		final Future<String> future = es.submit(task);
+
+		try
+		{
+			return future.get();
+		}
+		catch (InterruptedException | ExecutionException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	public void deleteDocument(final DeleteDocumentMessage message)

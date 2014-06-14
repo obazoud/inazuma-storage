@@ -74,6 +74,10 @@ class StorageProcessor extends UntypedActor
 		{
 			processPersistDocument((PersistDocumentMessage) message);
 		}
+		else if (message instanceof FetchDocumentMessage)
+		{
+			processFetchDocument((FetchDocumentMessage) message);
+		}
 		else if (message instanceof DeleteDocumentMessage)
 		{
 			processDeleteDocument((DeleteDocumentMessage) message);
@@ -166,7 +170,7 @@ class StorageProcessor extends UntypedActor
 		{
 			log.error("Could not add {} for user {}: {}", message.getKey(), userID, e.getMessage());
 
-			storageController.incrementDataRetries();
+			storageController.incrementDocumentRetries();
 			sendDelayedMessage(message);
 
 			return;
@@ -174,7 +178,7 @@ class StorageProcessor extends UntypedActor
 
 		final DocumentMetadata documentMetadata = new DocumentMetadata(message);
 		documentMetadataMap.put(message.getKey(), documentMetadata);
-		storageController.incrementDataPersisted();
+		storageController.incrementDocumentPersisted();
 
 		if (!persistDocumentMetadataMessageInQueue)
 		{
@@ -183,6 +187,14 @@ class StorageProcessor extends UntypedActor
 			storageController.incrementQueueSize();
 			context().parent().tell(new PersistDocumentMetadataMessage(userID), getSelf());
 		}
+	}
+
+	private void processFetchDocument(final FetchDocumentMessage message)
+	{
+		final String document = storageController.getStorageDBController().getDocument(message.getKey());
+		message.getCallback().setResult(document);
+
+		storageController.incrementDocumentFetched();
 	}
 
 	private void processDeleteDocument(final DeleteDocumentMessage message)
@@ -198,7 +210,7 @@ class StorageProcessor extends UntypedActor
 		{
 			log.error("Could not delete document {} for user {}: {}", message.getKey(), userID, e.getMessage());
 
-			storageController.incrementDataRetries();
+			storageController.incrementDocumentRetries();
 			sendDelayedMessage(message);
 
 			return;
