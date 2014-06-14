@@ -31,9 +31,9 @@ class StorageLookupController
 		getMap(userID).destroy();
 	}
 
-	void addSerializedData(final SerializedData serializedData)
+	void addSerializedData(final String userID, final DocumentMetadata documentMetadata)
 	{
-		getMap(serializedData.getUserID()).set(serializedData.getKey(), new DocumentMetadata(serializedData));
+		getMap(userID).set(userID, documentMetadata);
 	}
 
 	void deleteByKey(final String userID, final String key)

@@ -51,7 +51,9 @@ public class StorageController
 
 	public String getDocumentKeysByUserID(final String userID)
 	{
-		return storageLookupController.getDocumentKeysByUserID(userID);
+		// TODO implement via Akka message
+		//return storageLookupController.getDocumentKeysByUserID(userID);
+		return null;
 	}
 
 	public void addData(final SerializedData serializedData)
@@ -79,10 +81,8 @@ public class StorageController
 
 	public void deleteData(final String userID, final String key)
 	{
-		storageLookupController.deleteByKey(userID, key);
-
 		// TODO add new message to delete document from database
-		storageDispatcher.tell(new PersistLookupDocumentMessage(userID), ActorRef.noSender());
+		//storageDispatcher.tell(new DeleteDocument(userID, key), ActorRef.noSender());
 
 		dataDeleted.increment();
 	}

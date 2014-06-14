@@ -5,12 +5,15 @@ import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import gson.GsonWrapper;
+import model.DocumentMetadata;
 import model.SerializedData;
 import scala.concurrent.duration.Duration;
 import storage.messages.CreateLookupDocumentMessage;
 import storage.messages.PersistLookupDocumentMessage;
 import storage.messages.ProcessorIdleMessage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +27,7 @@ class StorageProcessor extends UntypedActor
 	private final HashSet<String> lookupDocumentsInQueue = new HashSet<>();
 	private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
+	private Collection<DocumentMetadata> documentMetadataCollection = new ArrayList<>();
 	private boolean isReady = false;
 
 	public StorageProcessor(final StorageController storageController, final String userID)
@@ -52,8 +56,9 @@ class StorageProcessor extends UntypedActor
 		else if (message instanceof ReceiveTimeout)
 		{
 			isReady = false;
+			documentMetadataCollection.clear();
+			//storageController.getLookupController().destroyDocument(userID);
 			storageController.incrementStorageProcessorDestroyed();
-			storageController.getLookupController().destroyDocument(userID);
 
 			context().parent().tell(new ProcessorIdleMessage(userID), self());
 		}
@@ -108,7 +113,9 @@ class StorageProcessor extends UntypedActor
 			return;
 		}
 
-		storageController.getLookupController().addSerializedData(serializedData);
+		final DocumentMetadata documentMetadata = new DocumentMetadata(serializedData);
+		documentMetadataCollection.add(documentMetadata);
+		//storageController.getLookupController().addSerializedData(userID, documentMetadata);
 		storageController.incrementDataPersisted();
 
 		if (!lookupDocumentsInQueue.contains(userID))
@@ -125,7 +132,7 @@ class StorageProcessor extends UntypedActor
 		lookupDocumentsInQueue.remove(userID);
 
 		final String userID = message.getUserID();
-		final String lookupDocument = gson.toJson(storageController.getLookupController().getDocumentMetadataCollection(userID));
+		final String lookupDocument = gson.toJson(documentMetadataCollection);
 
 		try
 		{
@@ -154,10 +161,25 @@ class StorageProcessor extends UntypedActor
 	{
 		try
 		{
+			//final Collection<DocumentMetadata> maybeCollection = storageController.getLookupController().getDocumentMetadataCollection(userID);
+			//if (maybeCollection != null && maybeCollection.size() > 0)
+			//{
+			//	documentMetadataCollection.set(maybeCollection);
+			//	isReady = true;
+			//
+			//	return;
+			//}
+
 			final String userLookupDocumentObject = storageController.getStorageDBController().getUserLookupDocument(userID);
 			if (userLookupDocumentObject != null)
 			{
-				storageController.getLookupController().createDocument(userID, gson.getDocumentMetadataCollection(userLookupDocumentObject));
+				documentMetadataCollection = gson.getDocumentMetadataCollection(userLookupDocumentObject);
+				//storageController.getLookupController().createDocument(userID, documentMetadataCollection);
+
+				if (documentMetadataCollection == null)
+				{
+					throw new RuntimeException("Lookup document for user " + userID + " is null! " + userLookupDocumentObject);
+				}
 			}
 
 			storageController.incrementStorageProcessorCreated();
