@@ -90,8 +90,6 @@ class StorageProcessor extends UntypedActor
 
 	private void processSerializedData(final SerializedData serializedData)
 	{
-		final String userID = serializedData.getUserID();
-
 		try
 		{
 			storageController.getStorageDBController().storeDocument(serializedData.getKey(), serializedData.getDocument());
@@ -130,7 +128,6 @@ class StorageProcessor extends UntypedActor
 	{
 		lookupDocumentInQueue = false;
 
-		final String userID = message.getUserID();
 		final String lookupDocument = gson.toJson(documentMetadataCollection);
 
 		try
